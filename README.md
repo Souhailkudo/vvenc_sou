@@ -1,85 +1,107 @@
-# Fraunhofer Versatile Video Encoder (VVenC)
+# A MAchine learning based approach to improve the complexity of Fraunhofer's Versatile Video Encoder (VVenC)
 
-The Fraunhofer Versatile Video Encoder (VVenC) is a fast and efficient H.266/VVC encoder implementation with the following main features:
-- Easy to use encoder implementation with five predefined quality/speed presets;
-- Perceptual optimization to improve subjective video quality, based on the XPSNR visual model;
-- Extensive frame-level and task-based parallelization with very good scaling;
-- Frame-level single-pass and two-pass rate control supporting variable bit-rate (VBR) encoding;
-- Expert mode encoder interface available, allowing fine-grained control of the encoding process.
+## Installation
 
-## Information
-
-See the [Wiki-Page](https://github.com/fraunhoferhhi/vvenc/wiki) for more information:
-
-* [Build information](https://github.com/fraunhoferhhi/vvenc/wiki/Build)
-* [Usage documentation](https://github.com/fraunhoferhhi/vvenc/wiki/Usage)
-* [VVenC performance](https://github.com/fraunhoferhhi/vvenc/wiki/Encoder-Performance)
-* [License](https://github.com/fraunhoferhhi/vvenc/wiki/License)
-* [Publications](https://github.com/fraunhoferhhi/vvenc/wiki/Publications)
-* [Version history](https://github.com/fraunhoferhhi/vvenc/wiki/Changelog)
-
-## Build
-
-VVenC uses CMake to describe and manage the build process. A working [CMake](https://cmake.org/) installation is required to build the software. In the following, the basic build steps are described. Please refer to the [Wiki](https://github.com/fraunhoferhhi/vvenc/wiki/Build) for the description of all build options.
-
-### How to build using CMake?
-
-To build using CMake, create a `build` directory and generate the project:
-
-```sh
+- Download and build LightGBM 2.3.2 from Microsoft's git:
+ ```sh
+git clone https://github.com/microsoft/LightGBM.git
+cd LightGBM/
+git checkout 483a9bbad23adecf8db9b77c9f2caa69080ecf7e
 mkdir build
 cd build
-cmake .. <build options>
+cmake ..
+make
 ```
-
-To actually build the project, run the following after completing project generation:
-
+For LightGBM to work with VVenC the correct directory needs to be specified in the CMakeLists.txt of the VVenC project. The directory is currently set locally to the VTM directory (../LightGBM), change it if needed. 
+- install nlohmann's json version 3.10.5
 ```sh
-cmake --build .
+git clone -b 'v3.10.5' --single-branch --depth 1 https://github.com/nlohmann/json
+cd json
+mkdir build
+cd build
+cmake -DBUILD_TESTING=OFF ..
+make
+make install
 ```
+- To use ONNX for CNN inference in CPU or GPU, onnx-runtime needs to be installed. If you want to use docker, you can use my docker **"souhaiel7/onnx:1.0"** made public in dockerhub as it has everything ready to work. If you want to use your host computer please follow these steps:
 
-For multi-configuration projects (e.g. Visual Studio or Xcode) specify `--config Release` to build the release configuration.
+  - Install onnx-runtime and everything that you would need to use ONNX for inference in C++, you can find everything in this link: https://github.com/open-mmlab/mmdeploy/blob/main/docs/en/01-how-to-build/linux-x86_64.md
+  You can try CPU inference which is simpler to setup then install the rest to try GPU inference.
+  - Run these commands and change the onnc-runtime version to the version you installed:
+    
+ ```sh
+ln -s onnxruntime-linux-x64-gpu-1.15.1/lib/libonnxruntime.so
+cp onnxruntime-linux-x64-gpu-1.15.1/lib/* /usr/local/lib
+mkdir -p /usr/local/include/onnxruntime/
+cp -r onnxruntime-linux-x64-gpu-1.15.1/include/ /usr/local/include/onnxruntime/
+```
+  - Create these 2 cmake files (credit to jcarius) so that cmake can find onnx-runtime:
+  
+  First file: onnxruntimeVersion.cmake (change version inside the file if needed)
+    ```
+    # Custom cmake version file by jcarius
 
-### How to build using GNU Make?
+    set(PACKAGE_VERSION "1.15.1")
+    
+    # Check whether the requested PACKAGE_FIND_VERSION is compatible
+    if("${PACKAGE_VERSION}" VERSION_LESS "${PACKAGE_FIND_VERSION}")
+      set(PACKAGE_VERSION_COMPATIBLE FALSE)
+    else()
+      set(PACKAGE_VERSION_COMPATIBLE TRUE)
+      if("${PACKAGE_VERSION}" VERSION_EQUAL "${PACKAGE_FIND_VERSION}")
+        set(PACKAGE_VERSION_EXACT TRUE)
+      endif()
+    endif()
+    ```
+  Second file: onnxruntimeConfig.cmake
+  ```
+  # Custom cmake config file by jcarius to enable find_package(onnxruntime) without modifying LIBRARY_PATH and LD_LIBRARY_PATH
+#
+# This will define the following variables:
+#   onnxruntime_FOUND        -- True if the system has the onnxruntime library
+#   onnxruntime_INCLUDE_DIRS -- The include directories for onnxruntime
+#   onnxruntime_LIBRARIES    -- Libraries to link against
+#   onnxruntime_CXX_FLAGS    -- Additional (required) compiler flags
 
-On top of the CMake build system, convinence Makefile is provided to simplify the build process. To build using GNU Make please run the following:
+include(FindPackageHandleStandardArgs)
 
+# Assume we are in <install-prefix>/share/cmake/onnxruntime/onnxruntimeConfig.cmake
+get_filename_component(CMAKE_CURRENT_LIST_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(onnxruntime_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+
+set(onnxruntime_INCLUDE_DIRS ${onnxruntime_INSTALL_PREFIX}/include/onnxruntime/include)
+set(onnxruntime_LIBRARIES onnxruntime)
+set(onnxruntime_CXX_FLAGS "") # no flags needed
+
+
+find_library(onnxruntime_LIBRARY onnxruntime
+    PATHS "${onnxruntime_INSTALL_PREFIX}/lib"
+)
+
+add_library(onnxruntime SHARED IMPORTED)
+set_property(TARGET onnxruntime PROPERTY IMPORTED_LOCATION "${onnxruntime_LIBRARY}")
+set_property(TARGET onnxruntime PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${onnxruntime_INCLUDE_DIRS}")
+set_property(TARGET onnxruntime PROPERTY INTERFACE_COMPILE_OPTIONS "${onnxruntime_CXX_FLAGS}")
+
+find_package_handle_standard_args(onnxruntime DEFAULT_MSG onnxruntime_LIBRARY onnxruntime_INCLUDE_DIRS)
+```
+  - Put the files where cmake can find them, in my case:
 ```sh
-make install-release <options>
+mkdir -p /usr/local/share/cmake/onnxruntime/
+cp onnxruntimeVersion.cmake /usr/local/share/cmake/onnxruntime/
+cp onnxruntimeConfig.cmake /usr/local/share/cmake/onnxruntime/
 ```
+Just installing onnx-runtime and creating the cmakefiles should allow the CPU inference, for the GPU inference, TensorRT and other dependencies are needed and they are all mentioned in the MLDeploy link above. 
 
-Other supported build targets include `configure`, `release`, `debug`, `relwithdebinfo`, `test`,  and `clean`. Refer to the Wiki for a full list of supported features.
-
-## Citing
-
-Please use the following citation when referencing VVenC in literature:
-
-```bibtex
-@InProceedings{VVenC,
-  author    = {Wieckowski, Adam and Brandenburg, Jens and Hinz, Tobias and Bartnik, Christian and George, Valeri and Hege, Gabriel and Helmrich, Christian and Henkel, Anastasia and Lehmann, Christian and Stoffers, Christian and Zupancic, Ivan and Bross, Benjamin and Marpe, Detlev},
-  booktitle = {Proc. IEEE International Conference on Multimedia Expo Workshops (ICMEW)},
-  date      = {2021},
-  title     = {VVenC: An Open And Optimized VVC Encoder Implementation},
-  doi       = {10.1109/ICMEW53276.2021.9455944},
-  pages     = {1-2},
-}
+## Usage
+Here is an example of encoding one file using our solution:
+```sh
+./vvencFFapp -i [path to raw video file] --preset slower -q 32 -s 416x240 -r 60 --InputBitDepth=8 -b bit.266 --useGPU=1 --predictionModes=1 --SplitNumber=0 --SplitNumberIntra=0 -t 16 --ModelFolder=[path to model_folder]
 ```
+explanation of inputs that aren't original inputs of VVenC:
+ - useGPU: Specifies whether you want the inference to be done in CPU (0) or GPU (1)
+ - predictionModes: specifies whether you want to use the model the inter model only (1), intra only (2) both (3) or none (0) which would encode in original VVenC. Currently (1) gives the best results.
+ - SplitNumber: Specifies the number of split modes you want the encoder to test in **inter** mode afer the model made its prediction, 0 is for custom numbers for each CU size which can be changed inside the jsonfile in model_folder. Currently 0 gives the best results.
+ - SplitNumberIntra: Same as SplitNumber but for Intra. Currently (3) gives the best results.
+ - ModelFolder: The folder "model_folder" provided in the git that contains all model files.  
 
-## Contributing
-
-Feel free to contribute. To do so:
-
-* Fork the current-most state of the master branch
-* Apply the desired changes
-* Add your name to [AUTHORS.md](./AUTHORS.md)
-* Create a pull-request to the upstream repository
-
-## License
-
-Please see [LICENSE.txt](./LICENSE.txt) file for the terms of use of the contents of this repository.
-
-For more information, please contact: vvc@hhi.fraunhofer.de
-
-**Copyright (c) 2019-2022, Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. & The VVenC Authors.**
-
-**All rights reserved.**
