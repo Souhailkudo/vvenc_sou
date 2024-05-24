@@ -334,10 +334,10 @@ void DecCu::xReconInter(CodingUnit &cu)
   }
   else
   {
-    CHECK(CU::isIBC(cu) && cu.ciip, "IBC and Ciip cannot be used together");
-    CHECK(CU::isIBC(cu) && cu.affine, "IBC and Affine cannot be used together");
-    CHECK(CU::isIBC(cu) && cu.geo, "IBC and geo cannot be used together");
-    CHECK(CU::isIBC(cu) && cu.mmvdMergeFlag, "IBC and MMVD cannot be used together");
+    CHECK_vvenc(CU::isIBC(cu) && cu.ciip, "IBC and Ciip cannot be used together");
+    CHECK_vvenc(CU::isIBC(cu) && cu.affine, "IBC and Affine cannot be used together");
+    CHECK_vvenc(CU::isIBC(cu) && cu.geo, "IBC and geo cannot be used together");
+    CHECK_vvenc(CU::isIBC(cu) && cu.mmvdMergeFlag, "IBC and MMVD cannot be used together");
     const bool luma = cu.Y().valid();
     const bool chroma = isChromaEnabled(cu.chromaFormat) && cu.Cb().valid();
     if (luma && (chroma || !isChromaEnabled(cu.chromaFormat)))
@@ -511,7 +511,7 @@ void DecCu::xDeriveCUMV( CodingUnit &cu )
   {
     if (cu.mmvdMergeFlag || cu.mmvdSkip)
     {
-      CHECK(cu.ciip == true, "invalid MHIntra");
+      CHECK_vvenc(cu.ciip == true, "invalid MHIntra");
       if (cu.cs->sps->SbtMvp)
       {
         Size bufSize = g_miScaling.scale(cu.lumaSize());
@@ -600,7 +600,7 @@ void DecCu::xDeriveCUMV( CodingUnit &cu )
           cu.mvpNum[eRefList] = affineAMVPInfo.numCand;
 
           //    Mv mv[3];
-          CHECK(cu.refIdx[eRefList] < 0, "Unexpected negative refIdx.");
+          CHECK_vvenc(cu.refIdx[eRefList] < 0, "Unexpected negative refIdx.");
           if (!cu.cs->pcv->isEncoder)
           {
             cu.mvd[eRefList][0].changeAffinePrecAmvr2Internal(cu.imv);
@@ -637,7 +637,7 @@ void DecCu::xDeriveCUMV( CodingUnit &cu )
       }
       if (cu.cs->sps->maxNumIBCMergeCand == 1)
       {
-        CHECK(cu.mvpIdx[REF_PIC_LIST_0], "mvpIdx for IBC mode should be 0");
+        CHECK_vvenc(cu.mvpIdx[REF_PIC_LIST_0], "mvpIdx for IBC mode should be 0");
       }
       cu.mv[REF_PIC_LIST_0][0] = amvpInfo.mvCand[cu.mvpIdx[REF_PIC_LIST_0]] + mvd;
       cu.mv[REF_PIC_LIST_0][0].mvCliptoStorageBitDepth();
@@ -672,7 +672,7 @@ void DecCu::xDeriveCUMV( CodingUnit &cu )
     const unsigned int  lcuWidth = cu.cs->slice->sps->CTUSize;
     int xPred = cu.mv[0][0].hor >> MV_FRACTIONAL_BITS_INTERNAL;
     int yPred = cu.mv[0][0].ver >> MV_FRACTIONAL_BITS_INTERNAL;
-    CHECK(!m_pcInterPred->isLumaBvValidIBC(lcuWidth, cuPelX, cuPelY, roiWidth, roiHeight, xPred, yPred), "invalid block vector for IBC detected.");
+    CHECK_vvenc(!m_pcInterPred->isLumaBvValidIBC(lcuWidth, cuPelX, cuPelY, roiWidth, roiHeight, xPred, yPred), "invalid block vector for IBC detected.");
   }
 }
 

@@ -97,7 +97,7 @@ _byteStreamNALUnit(
   if (bs.peekBytes(24/8) != 0x000001)
   {
     uint8_t zero_byte = bs.readByte();
-    CHECK( zero_byte != 0, "Zero byte not '0'" );
+    CHECK_vvenc(zero_byte != 0, "Zero byte not '0'" );
     stats.m_numZeroByteBytes++;
   }
 
@@ -149,7 +149,7 @@ _byteStreamNALUnit(
   &&     (bs.eofBeforeNBytes(32/8) || bs.peekBytes(32/8) != 0x00000001))
   {
     uint8_t trailing_zero_8bits = bs.readByte();
-    CHECK( trailing_zero_8bits != 0, "Trailing zero bits not '0'" );
+    CHECK_vvenc(trailing_zero_8bits != 0, "Trailing zero bits not '0'" );
     stats.m_numTrailingZero8BitsBytes++;
   }
 }

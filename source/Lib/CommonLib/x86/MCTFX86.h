@@ -64,7 +64,7 @@ int motionErrorLumaInt_SIMD( const Pel* org, const ptrdiff_t origStride, const P
 {
   int error = 0;
 
-  CHECK( w & 7, "SIMD blockSize needs to be a multiple of 8" );
+  CHECK_vvenc(w & 7, "SIMD blockSize needs to be a multiple of 8" );
 
 #if USE_AVX2
   if( ( w & 15 ) == 0 && vext >= AVX2 )
@@ -163,7 +163,7 @@ int motionErrorLumaFrac_SIMD( const Pel* org, const ptrdiff_t origStride, const 
   int error = 0;
   const int base = -3;
   
-  CHECK( w & 7, "SIMD blockSize needs to be a multiple of 8" );
+  CHECK_vvenc(w & 7, "SIMD blockSize needs to be a multiple of 8" );
 
   const Pel maxSampleValue = ( 1 << bitDepth ) - 1;
 
@@ -415,7 +415,7 @@ int motionErrorLumaFrac_loRes_SIMD( const Pel* org, const ptrdiff_t origStride, 
   int error = 0;
   const int base = -1;
   
-  CHECK( w & 7, "SIMD blockSize needs to be a multiple of 8" );
+  CHECK_vvenc(w & 7, "SIMD blockSize needs to be a multiple of 8" );
 
 #if USE_AVX2
   if( vext >= AVX2 && ( w & 15 ) == 0 )
@@ -649,7 +649,7 @@ void applyFrac6tap_SIMD_8x( const Pel* org, const ptrdiff_t origStride, Pel* buf
 {
   const int base = -3;
 
-  CHECK( bsx & 7, "SIMD blockSizeX needs to be a multiple of 8" );
+  CHECK_vvenc(bsx & 7, "SIMD blockSizeX needs to be a multiple of 8" );
 
   const Pel maxSampleValue = ( 1 << bitDepth ) - 1;
 
@@ -747,7 +747,7 @@ void applyFrac6tap_SIMD_4x( const Pel* org, const ptrdiff_t origStride, Pel* buf
 {
   const int base = -3;
 
-  CHECK( bsx & 3, "SIMD blockSizeX needs to be a multiple of 4" );
+  CHECK_vvenc(bsx & 3, "SIMD blockSizeX needs to be a multiple of 4" );
 
   const Pel maxSampleValue = ( 1 << bitDepth ) - 1;
 

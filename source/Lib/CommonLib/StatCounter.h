@@ -51,7 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef THROW
 #define THROW(x)            throw( Exception( "ERROR: In function \"" ) << __FUNCTION__ << "\" in " << __FILE__ << ":" << __LINE__ << ": " << x )
 #endif
-#ifndef CHECK
+#ifndef CHECK_vvenc
 #define CHECK(c,x)          if(c){ THROW(x); }
 #endif
 
@@ -253,7 +253,7 @@ public:
 
   StatCountersSet& operator= ( const StatCountersSet& other )
   {
-    CHECK( m_counters.size() != other.m_counters.size(), "Accessing counters with differen number of elements!" );
+    CHECK_vvenc(m_counters.size() != other.m_counters.size(), "Accessing counters with differen number of elements!" );
     for( size_t i = 0; i < m_counters.size(); i++ ) m_counters[i] = other.m_counters[i];
     return *this;
   }
@@ -423,7 +423,7 @@ public:
   {
     for( int i = 0; i < cntId.size(); i++ )
     {
-      CHECK( cntId[i] >= cntNamesLUT.size(), "Name for id failed!" );
+      CHECK_vvenc(cntId[i] >= cntNamesLUT.size(), "Name for id failed!" );
       addCounter( cntId[i], cntNamesLUT[cntId[i]], init_val );
     }
   }
@@ -725,7 +725,7 @@ public:
     StatCounter2DSet<T>::init( xDim, yDim );
     for( int i = 0; i < cntId.size(); i++ )
     {
-      CHECK( cntId[i] >= cntNamesLUT.size(), "Name for id failed!" );
+      CHECK_vvenc(cntId[i] >= cntNamesLUT.size(), "Name for id failed!" );
       addCounter( cntId[i], cntNamesLUT[cntId[i]], xDim, yDim, init_val );
     }
   }

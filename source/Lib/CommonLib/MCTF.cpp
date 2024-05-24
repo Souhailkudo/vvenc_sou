@@ -496,7 +496,7 @@ MCTF::~MCTF()
 
 void MCTF::init( const VVEncCfg& encCfg, NoMallocThreadPool* threadPool )
 {
-  CHECK( encCfg.m_vvencMCTF.numFrames != encCfg.m_vvencMCTF.numStrength, "should have been checked before" );
+  CHECK_vvenc(encCfg.m_vvencMCTF.numFrames != encCfg.m_vvencMCTF.numStrength, "should have been checked before" );
 
   m_encCfg     = &encCfg;
   m_threadPool = threadPool;
@@ -553,9 +553,9 @@ void MCTF::processPictures( const PicList& picList, bool flush, AccessUnitList& 
         }
       }
     }
-    CHECK( picFifo.empty(), "MCTF: no pictures to be filtered found" );
-    CHECK( filterIdx >= (int)picFifo.size(), "MCTF: picture filter error" );
-    CHECK( picFifo[ filterIdx ]->poc != m_filterPoc, "MCTF: picture filter error" );
+    CHECK_vvenc(picFifo.empty(), "MCTF: no pictures to be filtered found" );
+    CHECK_vvenc(filterIdx >= (int)picFifo.size(), "MCTF: picture filter error" );
+    CHECK_vvenc(picFifo[ filterIdx ]->poc != m_filterPoc, "MCTF: picture filter error" );
     // filter picture (when more than 1 picture is available for processing)
     if( picFifo.size() > 1 )
     {
@@ -825,7 +825,7 @@ int MCTF::motionErrorLuma(const PelStorage &orig,
   const int w = std::min<int>( bs, orig.Y().width  - x ) & ~7;
   const int h = std::min<int>( bs, orig.Y().height - y ) & ~7;
 
-  CHECK( !w || !h, "Incompatible sizes!" );
+  CHECK_vvenc(!w || !h, "Incompatible sizes!" );
 
   if( ( fx | fy ) == 0 )
   {

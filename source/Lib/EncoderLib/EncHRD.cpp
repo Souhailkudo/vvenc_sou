@@ -77,7 +77,7 @@ void EncHRD::initHRDParameters(const VVEncCfg& encCfg, const SPS& sps)
   uint32_t bitRate = (uint32_t)encCfg.m_RCTargetBitrate;
   uint32_t cpbSize = (uint32_t)profileLevelTierFeatures.getCpbSizeInBits();
 
-  CHECK(!(cpbSize != 0), "Unspecified error");  // CPB size may not be equal to zero. ToDo: have a better default and check for level constraints
+  CHECK_vvenc(!(cpbSize != 0), "Unspecified error");  // CPB size may not be equal to zero. ToDo: have a better default and check for level constraints
 
   generalHrdParams.timeScale      = encCfg.m_FrameRate;
   generalHrdParams.numUnitsInTick = encCfg.m_FrameScale;

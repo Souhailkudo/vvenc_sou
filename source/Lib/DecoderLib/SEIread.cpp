@@ -131,7 +131,7 @@ void SEIReader::parseSEImessage(InputBitstream* bs, SEIMessages& seis, const vve
 {
   SEIMessages   seiListInCurNalu;
   setBitstream(bs);
-  CHECK(m_pcBitstream->getNumBitsUntilByteAligned(), "Bitstream not aligned");
+  CHECK_vvenc(m_pcBitstream->getNumBitsUntilByteAligned(), "Bitstream not aligned");
 
   do
   {
@@ -139,12 +139,12 @@ void SEIReader::parseSEImessage(InputBitstream* bs, SEIMessages& seis, const vve
     seiListInCurNalu.push_back(seis.back());
     /* SEI messages are an integer number of bytes, something has failed
     * in the parsing if bitstream not byte-aligned */
-    CHECK(m_pcBitstream->getNumBitsUntilByteAligned(), "Bitstream not aligned");
+    CHECK_vvenc(m_pcBitstream->getNumBitsUntilByteAligned(), "Bitstream not aligned");
   }
   while (m_pcBitstream->getNumBitsLeft() > 8);
 
   SEIMessages fillerData = getSeisByType(seiListInCurNalu, SEI::FILLER_PAYLOAD);
-  CHECK(fillerData.size() > 0 && fillerData.size() != seiListInCurNalu.size(), "When an SEI NAL unit contains an SEI message with payloadType equal to filler payload, the SEI NAL unit shall not contain any other SEI message with payloadType not equal to filler payload");
+  CHECK_vvenc(fillerData.size() > 0 && fillerData.size() != seiListInCurNalu.size(), "When an SEI NAL unit contains an SEI message with payloadType equal to filler payload, the SEI NAL unit shall not contain any other SEI message with payloadType not equal to filler payload");
 
   xReadRbspTrailingBits();
 }
@@ -402,7 +402,7 @@ void SEIReader::xReadSEImessage(SEIMessages& seis, const vvencNalUnitType nalUni
 
 void SEIReader::xParseSEIuserDataUnregistered(SEIuserDataUnregistered &sei, uint32_t payloadSize, std::ostream *pDecodedMessageOutputStream)
 {
-  CHECK(payloadSize < ISO_IEC_11578_LEN, "Payload too small");
+  CHECK_vvenc(payloadSize < ISO_IEC_11578_LEN, "Payload too small");
   uint32_t val;
   output_sei_message_header(sei, pDecodedMessageOutputStream, payloadSize);
 
@@ -448,7 +448,7 @@ void SEIReader::xParseSEIDecodedPictureHash(SEIDecodedPictureHash& sei, uint32_t
   sei_read_code( pDecodedMessageOutputStream, 7, val, "dph_sei_reserved_zero_7bits");
   bytesRead++;
   uint32_t expectedSize = ( sei.singleCompFlag ? 1 : 3 ) * (sei.method == 0 ? 16 : (sei.method == 1 ? 2 : 4));
-  CHECK ((payloadSize - bytesRead) != expectedSize, "The size of the decoded picture hash does not match the expected size.");
+  CHECK_vvenc ((payloadSize - bytesRead) != expectedSize, "The size of the decoded picture hash does not match the expected size.");
 
   const char *traceString="\0";
   switch (sei.method)
@@ -521,7 +521,7 @@ void SEIReader::xParseSEIScalableNesting(SEIScalableNesting& sei, const vvencNal
           }
         }
       }
-      CHECK(lowestLayerId!= nuhLayerId, "nuh_layer_id is not equal to the lowest layer among Olss that the scalable SEI applies");
+      CHECK_vvenc(lowestLayerId != nuhLayerId, "nuh_layer_id is not equal to the lowest layer among Olss that the scalable SEI applies");
     }
   }
   else
@@ -549,7 +549,7 @@ void SEIReader::xParseSEIScalableNesting(SEIScalableNesting& sei, const vvencNal
   }
 
   sei_read_uvlc(decodedMessageOutputStream, symbol, "sn_num_seis_minus1"); sei.snNumSEIs = symbol + 1;
-  CHECK (sei.snNumSEIs > 64, "The value of sn_num_seis_minus1 shall be in the range of 0 to 63");
+  CHECK_vvenc (sei.snNumSEIs > 64, "The value of sn_num_seis_minus1 shall be in the range of 0 to 63");
 
   // byte alignment
   while (m_pcBitstream->getNumBitsRead() % 8 != 0)
@@ -588,34 +588,34 @@ void SEIReader::xCheckScalableNestingConstraints(const SEIScalableNesting& sei, 
 
   for (auto nestedsei : sei.nestedSEIs)
   {
-    CHECK(nestedsei->payloadType() == SEI::FILLER_PAYLOAD || nestedsei->payloadType() == SEI::SCALABLE_NESTING, "An SEI message that has payloadType equal to filler payload or scalable nesting shall not be contained in a scalable nesting SEI message");
+    CHECK_vvenc(nestedsei->payloadType() == SEI::FILLER_PAYLOAD || nestedsei->payloadType() == SEI::SCALABLE_NESTING, "An SEI message that has payloadType equal to filler payload or scalable nesting shall not be contained in a scalable nesting SEI message");
 
-    CHECK(nestedsei->payloadType() != SEI::FILLER_PAYLOAD && nestedsei->payloadType() != SEI::DECODED_PICTURE_HASH && nalUnitType != VVENC_NAL_UNIT_PREFIX_SEI, "When a scalable nesting SEI message contains an SEI message that has payloadType not equal to filler payload or decoded picture hash, the SEI NAL unit containing the scalable nesting SEI message shall have nal_unit_type equal to PREFIX_SEI_NUT");
+    CHECK_vvenc(nestedsei->payloadType() != SEI::FILLER_PAYLOAD && nestedsei->payloadType() != SEI::DECODED_PICTURE_HASH && nalUnitType != VVENC_NAL_UNIT_PREFIX_SEI, "When a scalable nesting SEI message contains an SEI message that has payloadType not equal to filler payload or decoded picture hash, the SEI NAL unit containing the scalable nesting SEI message shall have nal_unit_type equal to PREFIX_SEI_NUT");
 
-    CHECK(nestedsei->payloadType() == SEI::DECODED_PICTURE_HASH && nalUnitType != VVENC_NAL_UNIT_SUFFIX_SEI, "When a scalable nesting SEI message contains an SEI message that has payloadType equal to decoded picture hash, the SEI NAL unit containing the scalable nesting SEI message shall have nal_unit_type equal to SUFFIX_SEI_NUT");
+    CHECK_vvenc(nestedsei->payloadType() == SEI::DECODED_PICTURE_HASH && nalUnitType != VVENC_NAL_UNIT_SUFFIX_SEI, "When a scalable nesting SEI message contains an SEI message that has payloadType equal to decoded picture hash, the SEI NAL unit containing the scalable nesting SEI message shall have nal_unit_type equal to SUFFIX_SEI_NUT");
 
-    CHECK(nestedsei->payloadType() == SEI::DECODED_PICTURE_HASH && !sei.snSubpicFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to decoded picture hash, the value of sn_subpic_flag shall be equal to 1");
+    CHECK_vvenc(nestedsei->payloadType() == SEI::DECODED_PICTURE_HASH && !sei.snSubpicFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to decoded picture hash, the value of sn_subpic_flag shall be equal to 1");
 
-    CHECK(nestedsei->payloadType() == SEI::SUBPICTURE_LEVEL_INFO && sei.snSubpicFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to SLI, the value of sn_subpic_flag shall be equal to 0");
+    CHECK_vvenc(nestedsei->payloadType() == SEI::SUBPICTURE_LEVEL_INFO && sei.snSubpicFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to SLI, the value of sn_subpic_flag shall be equal to 0");
 
-    CHECK(vps->generalHrdParams.generalSamePicTimingInAllOlsFlag && nestedsei->payloadType() == SEI::PICTURE_TIMING, "When general_same_pic_timing_in_all_ols_flag is equal to 1, there shall be no SEI NAL unit that contain a scalable-nested SEI message with payloadType equal to PT");
+    CHECK_vvenc(vps->generalHrdParams.generalSamePicTimingInAllOlsFlag && nestedsei->payloadType() == SEI::PICTURE_TIMING, "When general_same_pic_timing_in_all_ols_flag is equal to 1, there shall be no SEI NAL unit that contain a scalable-nested SEI message with payloadType equal to PT");
 
     for (int i = 0; i < vclAssociatedSeiList.size(); i++)
     {
-      CHECK(nestedsei->payloadType() == vclAssociatedSeiList[i] && sei.snOlsFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to a value in vclAssociatedSeiList, the value of sn_ols_flag shall be equal to 0");
+      CHECK_vvenc(nestedsei->payloadType() == vclAssociatedSeiList[i] && sei.snOlsFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to a value in vclAssociatedSeiList, the value of sn_ols_flag shall be equal to 0");
     }
 
     if (nestedsei->payloadType() == SEI::BUFFERING_PERIOD || nestedsei->payloadType() == SEI::PICTURE_TIMING || nestedsei->payloadType() == SEI::DECODING_UNIT_INFO || nestedsei->payloadType() == SEI::SUBPICTURE_LEVEL_INFO)
     {
       containBPorPTorDUIorSLI = true;
-      CHECK(!sei.snOlsFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to BP, PT, or DUI, or SLI, the value of sn_ols_flag shall be equal to 1");
+      CHECK_vvenc(!sei.snOlsFlag, "When the scalable nesting SEI message contains an SEI message that has payloadType equal to BP, PT, or DUI, or SLI, the value of sn_ols_flag shall be equal to 1");
     }
     if (!(nestedsei->payloadType() == SEI::BUFFERING_PERIOD || nestedsei->payloadType() == SEI::PICTURE_TIMING || nestedsei->payloadType() == SEI::DECODING_UNIT_INFO || nestedsei->payloadType() == SEI::SUBPICTURE_LEVEL_INFO))
     {
       containNoBPorPTorDUIorSLI = true;
     }
   }
-  CHECK(containBPorPTorDUIorSLI && containNoBPorPTorDUIorSLI, "When a scalable nesting SEI message contains a BP, PT, DUI, or SLI SEI message, the scalable nesting SEI message shall not contain any other SEI message with payloadType not equal to BP, PT, DUI, or SLI");
+  CHECK_vvenc(containBPorPTorDUIorSLI && containNoBPorPTorDUIorSLI, "When a scalable nesting SEI message contains a BP, PT, DUI, or SLI SEI message, the scalable nesting SEI message shall not contain any other SEI message with payloadType not equal to BP, PT, DUI, or SLI");
 }
 
 void SEIReader::xParseSEIDecodingUnitInfo(SEIDecodingUnitInfo& sei, uint32_t payloadSize, const SEIBufferingPeriod& bp, const uint32_t temporalId, std::ostream *pDecodedMessageOutputStream)
@@ -700,7 +700,7 @@ void SEIReader::xParseSEIBufferingPeriod(SEIBufferingPeriod& sei, uint32_t paylo
     sei.decodingUnitDpbDuParamsInPicTimingSeiFlag = false;
   }
 
-  CHECK(sei.altCpbParamsPresent && sei.bpDecodingUnitHrdParamsPresent,"When bp_alt_cpb_params_present_flag is equal to 1, the value of bp_du_hrd_params_present_flag shall be equal to 0");
+  CHECK_vvenc(sei.altCpbParamsPresent && sei.bpDecodingUnitHrdParamsPresent, "When bp_alt_cpb_params_present_flag is equal to 1, the value of bp_du_hrd_params_present_flag shall be equal to 0");
 
   sei_read_flag( pDecodedMessageOutputStream, code, "concatenation_flag");
   sei.concatenationFlag = code;
@@ -1046,7 +1046,7 @@ void SEIReader::xParseSEIFramePacking(SEIFramePacking& sei, uint32_t payloadSize
   if( !sei.arrangementCancelFlag )
   {
     sei_read_code( pDecodedMessageOutputStream, 7, val, "fp_arrangement_type" );          sei.arrangementType = val;
-    CHECK( ( sei.arrangementType <= 2 ) || ( sei.arrangementType >= 6 ), "Invalid arrangement type" );
+    CHECK_vvenc((sei.arrangementType <= 2 ) || (sei.arrangementType >= 6 ), "Invalid arrangement type" );
 
     sei_read_flag( pDecodedMessageOutputStream, val, "fp_quincunx_sampling_flag" );                     sei.quincunxSamplingFlag = val;
 
@@ -1434,7 +1434,7 @@ void SEIReader::xParseSEISubpictureLevelInfo(SEISubpicureLevelInfo& sei, uint32_
     sei_read_flag(pDecodedMessageOutputStream,      val,    "sli_sublayer_info_present_flag");        sei.sliSublayerInfoPresent = val;
     while (!isByteAligned())
     {
-      sei_read_flag( pDecodedMessageOutputStream,   val,    "sli_alignment_zero_bit" );           CHECK (val != 0, "sli_alignment_zero_bit not equal to zero" );
+      sei_read_flag( pDecodedMessageOutputStream,   val,    "sli_alignment_zero_bit" );           CHECK_vvenc (val != 0, "sli_alignment_zero_bit not equal to zero" );
     }
   }
 

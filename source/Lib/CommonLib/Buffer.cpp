@@ -91,7 +91,7 @@ void mipMatrixMulCore( Pel* res, const Pel* input, const uint8_t* weight, const 
     sum += input[i];
   }
   const int offset = (1 << (MIP_SHIFT_MATRIX - 1)) - MIP_OFFSET_MATRIX * sum + (inputOffset << MIP_SHIFT_MATRIX);
-  CHECK( inputSize != 4 * (inputSize >> 2), "Error, input size not divisible by four" );
+  CHECK_vvenc(inputSize != 4 * (inputSize >> 2), "Error, input size not divisible by four" );
 
   Pel* mat = transpose ? buffer : res;
   unsigned posRes = 0;
@@ -699,7 +699,7 @@ void AreaBuf<Pel>::subtract( const AreaBuf<const Pel>& minuend, const AreaBuf<co
 template<>
 void AreaBuf<const Pel>::calcVarianceSplit( const AreaBuf<const Pel>& Org, const uint32_t  size, int& varh,int& varv) const
 {
-  CHECK( Org.width != Org.height, "Incompatible size!" );
+  CHECK_vvenc(Org.width != Org.height, "Incompatible size!" );
   int stride = Org.stride;
   const Pel* src;
   Pel data;
@@ -879,7 +879,7 @@ void AreaBuf<Pel>::linearTransform( const int scale, const unsigned shift, const
 template<>
 void AreaBuf<Pel>::transposedFrom( const AreaBuf<const Pel>& other )
 {
-  CHECK( width != other.height || height != other.width, "Incompatible size" );
+  CHECK_vvenc(width != other.height || height != other.width, "Incompatible size" );
 
   if( ( width & 3 ) != 0 || ( height & 3 ) != 0 )
   {
@@ -939,7 +939,7 @@ void AreaBuf<Pel>::transposedFrom( const AreaBuf<const Pel>& other )
 template<>
 void AreaBuf<Pel>::weightCiip( const AreaBuf<const Pel>& intra, const int numIntra )
 {
-  CHECK(width == 2, "Width of 2 is not supported");
+  CHECK_vvenc(width == 2, "Width of 2 is not supported");
   g_pelBufOP.weightCiip( buf, intra.buf, width * height, numIntra );
 }
 
@@ -982,7 +982,7 @@ void PelStorage::create( const UnitArea& _UnitArea )
 
 void PelStorage::create( const ChromaFormat &_chromaFormat, const Area& _area )
 {
-  CHECK( !bufs.empty(), "Trying to re-create an already initialized buffer" );
+  CHECK_vvenc(!bufs.empty(), "Trying to re-create an already initialized buffer" );
 
   chromaFormat = _chromaFormat;
 
@@ -996,7 +996,7 @@ void PelStorage::create( const ChromaFormat &_chromaFormat, const Area& _area )
     const unsigned totalHeight = _area.height >> getComponentScaleY( compID, _chromaFormat );
 
     const uint32_t area = totalWidth * totalHeight;
-    CHECK( !area, "Trying to create a buffer with zero area" );
+    CHECK_vvenc(!area, "Trying to create a buffer with zero area" );
     bufSize += area;
   }
 
@@ -1022,7 +1022,7 @@ void PelStorage::create( const ChromaFormat &_chromaFormat, const Area& _area )
 
 void PelStorage::create( const ChromaFormat &_chromaFormat, const Area& _area, const unsigned _maxCUSize, const unsigned _margin, const unsigned _alignment, const bool _scaleChromaMargin )
 {
-  CHECK( !bufs.empty(), "Trying to re-create an already initialized buffer" );
+  CHECK_vvenc(!bufs.empty(), "Trying to re-create an already initialized buffer" );
 
   chromaFormat = _chromaFormat;
 
@@ -1053,11 +1053,11 @@ void PelStorage::create( const ChromaFormat &_chromaFormat, const Area& _area, c
     if( _alignment )
     {
       // make sure buffer lines are align
-      CHECK( _alignment != MEMORY_ALIGN_DEF_SIZE, "Unsupported alignment" );
+      CHECK_vvenc(_alignment != MEMORY_ALIGN_DEF_SIZE, "Unsupported alignment" );
       totalWidth = ( ( totalWidth + _alignment - 1 ) / _alignment ) * _alignment;
     }
     uint32_t area = totalWidth * totalHeight;
-    CHECK( !area, "Trying to create a buffer with zero area" );
+    CHECK_vvenc(!area, "Trying to create a buffer with zero area" );
 
     m_origin[i] = ( Pel* ) xMalloc( Pel, area );
     Pel* topLeft = m_origin[i] + totalWidth * ymargin + xmargin;
@@ -1084,11 +1084,11 @@ void PelStorage::createFromBuf( PelUnitBuf buf )
 
 void PelStorage::compactResize( const UnitArea& area )
 {
-  CHECK( bufs.size() < area.blocks.size(), "Cannot increase buffer size when compacting!" );
+  CHECK_vvenc(bufs.size() < area.blocks.size(), "Cannot increase buffer size when compacting!" );
 
   for( uint32_t i = 0; i < area.blocks.size(); i++ )
   {
-    CHECK( m_maxArea.blocks[i].area() < area.blocks[i].area(), "Cannot increase buffer size when compacting!" );
+    CHECK_vvenc(m_maxArea.blocks[i].area() < area.blocks[i].area(), "Cannot increase buffer size when compacting!" );
 
     bufs[i].Size::operator=( area.blocks[i].size() );
     bufs[i].stride = bufs[i].width;
@@ -1123,9 +1123,9 @@ void PelStorage::swap( PelStorage& other )
   for( uint32_t i = 0; i < numCh; i++ )
   {
     // check this otherwise it would turn out to get very weird
-    CHECK( chromaFormat                   != other.chromaFormat                  , "Incompatible formats" );
-    CHECK( get( ComponentID( i ) )        != other.get( ComponentID( i ) )       , "Incompatible formats" );
-    CHECK( get( ComponentID( i ) ).stride != other.get( ComponentID( i ) ).stride, "Incompatible formats" );
+    CHECK_vvenc(chromaFormat != other.chromaFormat                  , "Incompatible formats" );
+    CHECK_vvenc(get(ComponentID(i ) ) != other.get(ComponentID(i ) )       , "Incompatible formats" );
+    CHECK_vvenc(get(ComponentID(i ) ).stride != other.get(ComponentID(i ) ).stride, "Incompatible formats" );
 
     std::swap( bufs[i].buf,    other.bufs[i].buf );
     std::swap( bufs[i].stride, other.bufs[i].stride );
@@ -1257,15 +1257,15 @@ PelBuf PelStorage::getCompactBuf(const CompArea& carea)
 
 void copyPadToPelUnitBuf( PelUnitBuf pelUnitBuf, const vvencYUVBuffer& yuvBuffer, const ChromaFormat& chFmt )
 {
-  CHECK( pelUnitBuf.bufs.size() == 0, "pelUnitBuf not initialized" );
+  CHECK_vvenc(pelUnitBuf.bufs.size() == 0, "pelUnitBuf not initialized" );
   pelUnitBuf.chromaFormat = chFmt;
   const int numComp = getNumberValidComponents( chFmt );
   for ( int i = 0; i < numComp; i++ )
   {
     const vvencYUVPlane& src = yuvBuffer.planes[ i ];
-    CHECK( src.ptr == nullptr, "yuvBuffer not setup" );
+    CHECK_vvenc(src.ptr == nullptr, "yuvBuffer not setup" );
     PelBuf& dest = pelUnitBuf.bufs[i];
-    CHECK( dest.buf == nullptr, "yuvBuffer not setup" );
+    CHECK_vvenc(dest.buf == nullptr, "yuvBuffer not setup" );
 
     for( int y = 0; y < src.height; y++ )
     {
@@ -1311,7 +1311,7 @@ void setupYuvBuffer ( const PelUnitBuf& pelUnitBuf, vvencYUVBuffer& yuvBuffer, c
     const int sx             = getComponentScaleX( compId, chFmt );
     const int sy             = getComponentScaleY( compId, chFmt );
     vvencYUVPlane& yuvPlane = yuvBuffer.planes[ i ];
-    CHECK( yuvPlane.ptr != nullptr, "yuvBuffer already in use" );
+    CHECK_vvenc(yuvPlane.ptr != nullptr, "yuvBuffer already in use" );
     yuvPlane.ptr             = area.bufAt( confWindow->winLeftOffset >> sx, confWindow->winTopOffset >> sy );
     yuvPlane.width           = ( ( area.width  << sx ) - ( confWindow->winLeftOffset + confWindow->winRightOffset  ) ) >> sx;
     yuvPlane.height          = ( ( area.height << sy ) - ( confWindow->winTopOffset  + confWindow->winBottomOffset ) ) >> sy;

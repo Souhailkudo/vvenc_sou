@@ -384,7 +384,7 @@ void InterpolationFilter::filter(const ClpRng& clpRng, Pel const *src, int srcSt
   int shift    = IF_FILTER_PREC;
   // with the current settings (IF_INTERNAL_PREC = 14 and IF_FILTER_PREC = 6), though headroom can be
   // negative for bit depths greater than 14, shift will remain non-negative for bit depths of 8->20
-  CHECK(shift < 0, "Negative shift");
+  CHECK_vvenc(shift < 0, "Negative shift");
 
   if ( isLast )
   {
@@ -553,7 +553,7 @@ void InterpolationFilter::filterHor(const ComponentID compID, Pel const *src, in
   }
   else if( isLuma( compID ) )
   {
-    CHECK( frac < 0 || frac >= LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
+    CHECK_vvenc(frac < 0 || frac >= LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
     if( nFilterIdx == 1 )
     {
       filterHor<NTAPS_BILINEAR>(clpRng, src, srcStride, dst, dstStride, width, height, isLast, m_bilinearFilterPrec4[frac], biMCForDMVR);
@@ -588,7 +588,7 @@ void InterpolationFilter::filterHor(const ComponentID compID, Pel const *src, in
   else
   {
     const uint32_t csx = getComponentScaleX( compID, fmt );
-    CHECK( frac < 0 || csx >= 2 || ( frac << ( 1 - csx ) ) >= CHROMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
+    CHECK_vvenc(frac < 0 || csx >= 2 || ( frac << (1 - csx ) ) >= CHROMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
     filterHor<NTAPS_CHROMA>( clpRng, src, srcStride, dst, dstStride, width, height, isLast, m_chromaFilter[frac << ( 1 - csx )], biMCForDMVR);
   }
 }
@@ -618,7 +618,7 @@ void InterpolationFilter::filterVer(const ComponentID compID, Pel const *src, in
   }
   else if( isLuma( compID ) )
   {
-    CHECK( frac < 0 || frac >= LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
+    CHECK_vvenc(frac < 0 || frac >= LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
     if (nFilterIdx == 1)
     {
       filterVer<NTAPS_BILINEAR>(clpRng, src, srcStride, dst, dstStride, width, height, isFirst, isLast, m_bilinearFilterPrec4[frac], biMCForDMVR);
@@ -653,7 +653,7 @@ void InterpolationFilter::filterVer(const ComponentID compID, Pel const *src, in
   else
   {
     const uint32_t csy = getComponentScaleY( compID, fmt );
-    CHECK( frac < 0 || csy >= 2 || ( frac << ( 1 - csy ) ) >= CHROMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
+    CHECK_vvenc(frac < 0 || csy >= 2 || ( frac << (1 - csy ) ) >= CHROMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS, "Invalid fraction" );
     filterVer<NTAPS_CHROMA>(clpRng, src, srcStride, dst, dstStride, width, height, isFirst, isLast, m_chromaFilter[frac << (1 - csy)], biMCForDMVR);
   }
 }

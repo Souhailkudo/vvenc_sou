@@ -75,7 +75,7 @@ static __itt_domain* itt_domain_gopEncoder   = __itt_domain_create( "GOPEncoder"
 // ====================================================================================================================
 bool isPicEncoded( int targetPoc, int curPoc, int curTLayer, int gopSize, int intraPeriod )
 {
-  CHECK( intraPeriod % gopSize != 0, "broken for aip" );
+  CHECK_vvenc(intraPeriod % gopSize != 0, "broken for aip" );
   int  tarGop = targetPoc / gopSize;
   int  curGop = curPoc / gopSize;
 
@@ -164,7 +164,7 @@ void trySkipOrDecodePicture( bool& decPic, bool& encPic, const VVEncCfg& cfg, Pi
   // check if we should decode a trailing bitstream
   if( cfg.m_decodeBitstreams[1][0] != '\0' )
   {
-    CHECK( cfg.m_IntraPeriod % cfg.m_GOPSize != 0, "broken for aip" );
+    CHECK_vvenc(cfg.m_IntraPeriod % cfg.m_GOPSize != 0, "broken for aip" );
     const int  iNextKeyPOC    = (1+cfg.m_switchPOC  / cfg.m_GOPSize)     *cfg.m_GOPSize;
     const int  iNextIntraPOC  = (1+(cfg.m_switchPOC / cfg.m_IntraPeriod))*cfg.m_IntraPeriod;
     const int  iRestartIntraPOC   = iNextIntraPOC + (((iNextKeyPOC == iNextIntraPOC) && cfg.m_switchDQP ) ? cfg.m_IntraPeriod : 0);
@@ -361,7 +361,7 @@ void EncGOP::initPicture( Picture* pic )
 
   pic->setSccFlags( m_pcEncCfg );
 
-  CHECK( m_ppsMap.getFirstPS() == nullptr || m_spsMap.getPS( m_ppsMap.getFirstPS()->spsId ) == nullptr, "picture set not initialised" );
+  CHECK_vvenc(m_ppsMap.getFirstPS() == nullptr || m_spsMap.getPS(m_ppsMap.getFirstPS()->spsId ) == nullptr, "picture set not initialised" );
 
   const PPS& pps = *( m_ppsMap.getFirstPS() );
   const SPS& sps = *( m_spsMap.getPS( pps.spsId ) );
@@ -407,7 +407,7 @@ void EncGOP::waitForFreeEncoders()
     std::unique_lock<std::mutex> lock( m_gopEncMutex );
     if( ! xEncodersFinished() )
     {
-      CHECK( m_pcEncCfg->m_numThreads <= 0, "run into MT code, but no threading enabled" );
+      CHECK_vvenc(m_pcEncCfg->m_numThreads <= 0, "run into MT code, but no threading enabled" );
       m_gopEncCond.wait( lock );
     }
   }
@@ -415,7 +415,7 @@ void EncGOP::waitForFreeEncoders()
 
 void EncGOP::processPictures( const PicList& picList, bool flush, AccessUnitList& auList, PicList& doneList, PicList& freeList )
 {
-  CHECK( picList.empty(), "empty input picture list given" );
+  CHECK_vvenc(picList.empty(), "empty input picture list given" );
 
   // create list of pictures ordered in coding order and ready to be encoded
   xInitPicsInCodingOrder( picList, flush );
@@ -480,8 +480,8 @@ void EncGOP::xProcessPictures( bool flush, AccessUnitList& auList, PicList& done
           {
             break;
           }
-          CHECK( m_pcEncCfg->m_numThreads <= 0, "run into MT code, but no threading enabled" );
-          CHECK( xEncodersFinished(), "wait for picture to be finished, but no pic encoder running" );
+          CHECK_vvenc(m_pcEncCfg->m_numThreads <= 0, "run into MT code, but no threading enabled" );
+          CHECK_vvenc(xEncodersFinished(), "wait for picture to be finished, but no pic encoder running" );
           m_gopEncCond.wait( lock );
           continue;
         }
@@ -492,7 +492,7 @@ void EncGOP::xProcessPictures( bool flush, AccessUnitList& auList, PicList& done
         // rate-control with look-ahead: init next chunk
         if( m_pcEncCfg->m_RCTargetBitrate > 0 && m_pcEncCfg->m_LookAhead )
         {
-          CHECK( m_isPreAnalysis, "rate control enabled for pre analysis" );
+          CHECK_vvenc(m_isPreAnalysis, "rate control enabled for pre analysis" );
 
           if( pic->gopEntry->m_isStartOfGop )
           {
@@ -508,8 +508,8 @@ void EncGOP::xProcessPictures( bool flush, AccessUnitList& auList, PicList& done
         m_freePicEncoderList.pop_front();
       }
 
-      CHECK( picEncoder == nullptr, "no free picture encoder available" );
-      CHECK( pic        == nullptr, "no picture to be encoded, ready for encoding" );
+      CHECK_vvenc(picEncoder == nullptr, "no free picture encoder available" );
+      CHECK_vvenc(pic == nullptr, "no picture to be encoded, ready for encoding" );
       m_procList.remove( pic );
 
       xEncodePicture( pic, picEncoder );
@@ -655,7 +655,7 @@ void EncGOP::xOutputRecYuv( const PicList& picList )
 {
   if( m_pcRateCtrl->rcIsFinalPass && m_recYuvBufFunc )
   {
-    CHECK( m_isPreAnalysis, "yuv output enabled for pre analysis" );
+    CHECK_vvenc(m_isPreAnalysis, "yuv output enabled for pre analysis" );
     // ordered YUV output
     bool bRun = true;
     while( bRun )
@@ -706,7 +706,7 @@ void EncGOP::printOutSummary( const bool printMSEBasedSNR, const bool printSeque
 
   if( m_pcEncCfg->m_decodeBitstreams[0][0] != '\0' && m_pcEncCfg->m_decodeBitstreams[1][0] != '\0' && m_pcEncCfg->m_fastForwardToPOC < 0 )
   {
-    CHECK( !( m_numPicsCoded == m_AnalyzeAll.getNumPic() ), "Unspecified error" );
+    CHECK_vvenc(!(m_numPicsCoded == m_AnalyzeAll.getNumPic() ), "Unspecified error" );
   }
 
   //--CFG_KDY
@@ -762,7 +762,7 @@ void EncGOP::printOutSummary( const bool printMSEBasedSNR, const bool printSeque
 
 void EncGOP::getParameterSets( AccessUnitList& accessUnit )
 {
-  CHECK( m_ppsMap.getFirstPS() == nullptr || m_spsMap.getPS( m_ppsMap.getFirstPS()->spsId ) == nullptr, "sps/pps not initialised" );
+  CHECK_vvenc(m_ppsMap.getFirstPS() == nullptr || m_spsMap.getPS(m_ppsMap.getFirstPS()->spsId ) == nullptr, "sps/pps not initialised" );
 
   const PPS& pps = *( m_ppsMap.getFirstPS() );
   const SPS& sps = *( m_spsMap.getPS( pps.spsId ) );
@@ -1003,7 +1003,7 @@ void EncGOP::xInitSPS(SPS &sps) const
   sps.CIIP                          = m_pcEncCfg->m_CIIP != 0;
   sps.SBT                           = m_pcEncCfg->m_SBT != 0;
 
-  CHECK( sps.maxTLayers > VVENC_MAX_TLAYER, "array index out of bounds" );
+  CHECK_vvenc(sps.maxTLayers > VVENC_MAX_TLAYER, "array index out of bounds" );
   for( int i = 0; i < sps.maxTLayers; i++ )
   {
     sps.maxDecPicBuffering[ i ]     = m_gopCfg->getMaxDecPicBuffering()[ i ];
@@ -1035,7 +1035,7 @@ void EncGOP::xInitSPS(SPS &sps) const
   sps.hrdParametersPresent            = m_pcEncCfg->m_hrdParametersPresent;
 
   sps.numLongTermRefPicSPS            = NUM_LONG_TERM_REF_PIC_SPS;
-  CHECK(!(NUM_LONG_TERM_REF_PIC_SPS <= MAX_NUM_LONG_TERM_REF_PICS), "Unspecified error");
+  CHECK_vvenc(!(NUM_LONG_TERM_REF_PIC_SPS <= MAX_NUM_LONG_TERM_REF_PICS), "Unspecified error");
   for (int k = 0; k < NUM_LONG_TERM_REF_PIC_SPS; k++)
   {
     sps.ltRefPicPocLsbSps[k]          = 0;
@@ -1176,8 +1176,8 @@ void EncGOP::xInitPPS(PPS &pps, const SPS &sps) const
 
   pps.numRefIdxL0DefaultActive = std::max( m_gopCfg->getDefaultNumActive( 0 ), 1 );
   pps.numRefIdxL1DefaultActive = std::max( m_gopCfg->getDefaultNumActive( 1 ), 1 );
-  CHECK( pps.numRefIdxL0DefaultActive > 15, "num default ref index active exceeds maximum value");
-  CHECK( pps.numRefIdxL1DefaultActive > 15, "num default ref index active exceeds maximum value");
+  CHECK_vvenc(pps.numRefIdxL0DefaultActive > 15, "num default ref index active exceeds maximum value");
+  CHECK_vvenc(pps.numRefIdxL1DefaultActive > 15, "num default ref index active exceeds maximum value");
 
   pps.noPicPartition = !m_pcEncCfg->m_picPartitionFlag;
   pps.ctuSize        = sps.CTUSize;
@@ -1353,8 +1353,8 @@ bool EncGOP::xIsSliceTemporalSwitchingPoint( const Slice* slice, const PicList& 
 
 void EncGOP::xInitPicsInCodingOrder( const PicList& picList, bool flush )
 {
-  CHECK( m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListInput.size() > 0,  "no frame parallel processing enabled, but multiple pics in flight" );
-  CHECK( m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListOutput.size() > 0, "no frame parallel processing enabled, but multiple pics in flight" );
+  CHECK_vvenc(m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListInput.size() > 0, "no frame parallel processing enabled, but multiple pics in flight" );
+  CHECK_vvenc(m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListOutput.size() > 0, "no frame parallel processing enabled, but multiple pics in flight" );
 
   // loop over pic list, which is sorted in coding number order 
   for( auto pic : picList )
@@ -1366,7 +1366,7 @@ void EncGOP::xInitPicsInCodingOrder( const PicList& picList, bool flush )
     if( ! flush && pic->gopEntry->m_codingNum != m_lastCodingNum + 1 )
       break;
 
-    CHECK( m_lastCodingNum == -1 && ! pic->gopEntry->m_isStartOfIntra, "encoding should start with an I-Slice" );
+    CHECK_vvenc(m_lastCodingNum == -1 && ! pic->gopEntry->m_isStartOfIntra, "encoding should start with an I-Slice" );
 
     // initialize slice header
     pic->encTime.startTimer();
@@ -1385,8 +1385,8 @@ void EncGOP::xInitPicsInCodingOrder( const PicList& picList, bool flush )
       break;
   }
 
-  CHECK( picList.size() && m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListInput.size() != 1,  "no new picture for encoding found" );
-  CHECK( picList.size() && m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListOutput.size() != 1, "no new picture for encoding found" );
+  CHECK_vvenc(picList.size() && m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListInput.size() != 1, "no new picture for encoding found" );
+  CHECK_vvenc(picList.size() && m_pcEncCfg->m_maxParallelFrames <= 0 && m_gopEncListOutput.size() != 1, "no new picture for encoding found" );
 }
 
 void EncGOP::xGetProcessingLists( std::list<Picture*>& procList, std::list<Picture*>& rcUpdateList, const bool lockStepMode )
@@ -1446,7 +1446,7 @@ void EncGOP::xGetProcessingLists( std::list<Picture*>& procList, std::list<Pictu
     if( ! m_gopEncListOutput.empty() )
       rcUpdateList.push_back( m_gopEncListOutput.front() );
   }
-  CHECK( ! rcUpdateList.empty() && m_gopEncListOutput.empty(),                                                         "first picture in RC update and in output list have to be the same" );
+  CHECK_vvenc(! rcUpdateList.empty() && m_gopEncListOutput.empty(), "first picture in RC update and in output list have to be the same" );
 }
 
 void EncGOP::xInitFirstSlice( Picture& pic, const PicList& picList, bool isEncodeLtRef )
@@ -1508,8 +1508,8 @@ void EncGOP::xInitFirstSlice( Picture& pic, const PicList& picList, bool isEncod
 
   slice->associatedIRAPType        = m_associatedIRAPType;
   slice->associatedIRAP            = m_associatedIRAPPOC;
-  CHECK( MAX_REF_PICS <= gopEntry.m_numRefPicsActive[ 0 ], "number of ref pics out of supported range" );
-  CHECK( MAX_REF_PICS <= gopEntry.m_numRefPicsActive[ 1 ], "number of ref pics out of supported range" );
+  CHECK_vvenc(MAX_REF_PICS <= gopEntry.m_numRefPicsActive[ 0 ], "number of ref pics out of supported range" );
+  CHECK_vvenc(MAX_REF_PICS <= gopEntry.m_numRefPicsActive[ 1 ], "number of ref pics out of supported range" );
   slice->numRefIdx[REF_PIC_LIST_0] = gopEntry.m_numRefPicsActive[ 0 ];
   slice->numRefIdx[REF_PIC_LIST_1] = gopEntry.m_numRefPicsActive[ 1 ];
   slice->setDecodingRefreshMarking ( m_pocCRA, m_bRefreshPending, picList );
@@ -1661,7 +1661,7 @@ void EncGOP::xInitFirstSlice( Picture& pic, const PicList& picList, bool isEncod
 
   }
 
-  CHECK( slice->TLayer != 0 && slice->sliceType == VVENC_I_SLICE, "Unspecified error" );
+  CHECK_vvenc(slice->TLayer != 0 && slice->sliceType == VVENC_I_SLICE, "Unspecified error" );
 
   pic.cs->slice = slice;
   pic.cs->allocateVectorsAtPicLevel();
@@ -1682,7 +1682,7 @@ void EncGOP::xInitFirstSlice( Picture& pic, const PicList& picList, bool isEncod
       alfAPS->ccAlfParam.reset();
     }
   }
-  CHECK( slice->enableDRAPSEI && m_pcEncCfg->m_maxParallelFrames, "Dependent Random Access Point is not supported by Frame Parallel Processing" );
+  CHECK_vvenc(slice->enableDRAPSEI && m_pcEncCfg->m_maxParallelFrames, "Dependent Random Access Point is not supported by Frame Parallel Processing" );
 
   if( pic.poc == m_pcEncCfg->m_switchPOC )
   {
@@ -1750,8 +1750,8 @@ void EncGOP::xUpdateRPRtmvp( PicHeader* picHeader, Slice* slice )
       const Picture *refPicL0 = slice->getRefPic( REF_PIC_LIST_0, colRefIdxL0 );
       const Picture *refPicL1 = slice->getRefPic( REF_PIC_LIST_1, colRefIdxL1 );
 
-      CHECK( !refPicL0->slices.size(), "Wrong L0 reference picture" );
-      CHECK( !refPicL1->slices.size(), "Wrong L1 reference picture" );
+      CHECK_vvenc(!refPicL0->slices.size(), "Wrong L0 reference picture" );
+      CHECK_vvenc(!refPicL1->slices.size(), "Wrong L1 reference picture" );
 
       const uint32_t uiColFromL0 = refPicL0->slices[0]->sliceQp > refPicL1->slices[0]->sliceQp;
       picHeader->picColFromL0 = uiColFromL0;
@@ -2081,7 +2081,7 @@ int EncGOP::xWriteParameterSets( Picture& pic, AccessUnitList& accessUnit, HLSWr
       aps->temporalId = slice->TLayer;
       actualTotalBits += xWriteAPS( accessUnit, aps, hlsWriter, VVENC_NAL_UNIT_PREFIX_APS );
       apsMap.clearChangedFlag( apsMapIdx );
-      CHECK( aps != slice->picHeader->lmcsAps, "Wrong LMCS APS pointer" );
+      CHECK_vvenc(aps != slice->picHeader->lmcsAps, "Wrong LMCS APS pointer" );
     }
   }
 
@@ -2565,8 +2565,8 @@ uint64_t EncGOP::xFindDistortionPlane( const CPelBuf& pic0, const CPelBuf& pic1,
   const  Pel*  pSrc0 = pic0.bufAt(0, 0);
   const  Pel*  pSrc1 = pic1.bufAt(0, 0);
 
-  CHECK(pic0.width  != pic1.width , "Unspecified error");
-  CHECK(pic0.height != pic1.height, "Unspecified error");
+  CHECK_vvenc(pic0.width != pic1.width , "Unspecified error");
+  CHECK_vvenc(pic0.height != pic1.height, "Unspecified error");
 
   if( rshift > 0 )
   {

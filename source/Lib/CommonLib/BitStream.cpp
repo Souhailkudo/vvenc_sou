@@ -121,8 +121,8 @@ void OutputBitstream::clear()
 
 void OutputBitstream::write   ( uint32_t uiBits, uint32_t uiNumberOfBits )
 {
-  CHECK( uiNumberOfBits > 32, "Number of bits is exceeds '32'" );
-  CHECK( uiNumberOfBits != 32 && (uiBits & (~0u << uiNumberOfBits)) != 0, "Unsupported parameters" );
+  CHECK_vvenc(uiNumberOfBits > 32, "Number of bits is exceeds '32'" );
+  CHECK_vvenc(uiNumberOfBits != 32 && (uiBits & (~0u << uiNumberOfBits)) != 0, "Unsupported parameters" );
 
   /* any modulo 8 remainder of num_total_bits cannot be written this time,
    * and will be held until next time. */
@@ -265,7 +265,7 @@ void InputBitstream::pseudoRead ( uint32_t uiNumberOfBits, uint32_t& ruiBits )
 
 void InputBitstream::read (uint32_t uiNumberOfBits, uint32_t& ruiBits)
 {
-  CHECK( uiNumberOfBits > 32, "Too many bits read" );
+  CHECK_vvenc(uiNumberOfBits > 32, "Too many bits read" );
 
   m_numBitsRead += uiNumberOfBits;
 
@@ -302,7 +302,7 @@ void InputBitstream::read (uint32_t uiNumberOfBits, uint32_t& ruiBits)
    */
   uint32_t aligned_word = 0;
   uint32_t num_bytes_to_load = (uiNumberOfBits - 1) >> 3;
-  CHECK(m_fifo_idx + num_bytes_to_load >= m_fifo.size(), "Exceeded FIFO size");
+  CHECK_vvenc(m_fifo_idx + num_bytes_to_load >= m_fifo.size(), "Exceeded FIFO size");
 
   switch (num_bytes_to_load)
   {
@@ -331,7 +331,7 @@ void InputBitstream::read (uint32_t uiNumberOfBits, uint32_t& ruiBits)
  */
 void OutputBitstream::insertAt(const OutputBitstream& src, uint32_t pos)
 {
-  CHECK(0 != src.getNumberOfWrittenBits() % 8, "Number of written bits is not a multiple of 8");
+  CHECK_vvenc(0 != src.getNumberOfWrittenBits() % 8, "Number of written bits is not a multiple of 8");
 
   std::vector<uint8_t>::iterator at = m_fifo.begin() + pos;
   m_fifo.insert(at, src.m_fifo.begin(), src.m_fifo.end());
@@ -397,14 +397,14 @@ uint32_t InputBitstream::readByteAlignment()
 {
   uint32_t code = 0;
   read( 1, code );
-  CHECK(code != 1, "Code is not '1'");
+  CHECK_vvenc(code != 1, "Code is not '1'");
 
   uint32_t numBits = getNumBitsUntilByteAligned();
   if(numBits)
   {
-    CHECK(numBits > getNumBitsLeft(), "More bits available than left");
+    CHECK_vvenc(numBits > getNumBitsLeft(), "More bits available than left");
     read( numBits, code );
-    CHECK(code != 0, "Code not '0'");
+    CHECK_vvenc(code != 0, "Code not '0'");
   }
   return numBits+1;
 }

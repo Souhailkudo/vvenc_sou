@@ -52,9 +52,9 @@ namespace vvenc
 template<X86_VEXT vext>
 void simdDeriveClassificationBlk(AlfClassifier *classifier, const CPelBuf& srcLuma, const Area& blkDst, const Area& blk, const int shift, const int vbCTUHeight, int vbPos)
 {
-  CHECK((blk.height & 7) != 0, "Block height must be a multiple of 8");
-  CHECK((blk.width & 7) != 0, "Block width must be a multiple of 8");
-  CHECK((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
+  CHECK_vvenc((blk.height & 7) != 0, "Block height must be a multiple of 8");
+  CHECK_vvenc((blk.width & 7) != 0, "Block width must be a multiple of 8");
+  CHECK_vvenc((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
 
   const size_t imgStride = srcLuma.stride;
   const Pel*   srcExt    = srcLuma.buf;
@@ -302,8 +302,8 @@ void simdFilter5x5Blk( const AlfClassifier *classifier, const PelUnitBuf& recDst
   int vbPos)
 
 {
-  CHECK((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
-  CHECK(!isChroma(compId), "ALF 5x5 filter is for chroma only");
+  CHECK_vvenc((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
+  CHECK_vvenc(!isChroma(compId), "ALF 5x5 filter is for chroma only");
 
   const CPelBuf srcBuffer = recSrc.get(compId);
   PelBuf        dstBuffer = recDst.get(compId);
@@ -322,10 +322,10 @@ void simdFilter5x5Blk( const AlfClassifier *classifier, const PelUnitBuf& recDst
   constexpr size_t STEP_X = 8;
   constexpr size_t STEP_Y = 4;
 
-  CHECK(blk.y % STEP_Y, "Wrong startHeight in filtering");
-  CHECK(blk.x % STEP_X, "Wrong startWidth in filtering");
-  CHECK(height % STEP_Y, "Wrong endHeight in filtering");
-  CHECK(width % 4, "Wrong endWidth in filtering");
+  CHECK_vvenc(blk.y % STEP_Y, "Wrong startHeight in filtering");
+  CHECK_vvenc(blk.x % STEP_X, "Wrong startWidth in filtering");
+  CHECK_vvenc(height % STEP_Y, "Wrong endHeight in filtering");
+  CHECK_vvenc(width % 4, "Wrong endWidth in filtering");
 
   const Pel* src = srcBuffer.buf + blk.y * srcStride + blk.x;
   Pel*       dst = dstBuffer.buf + blkDst.y * dstStride + blkDst.x;
@@ -659,8 +659,8 @@ void simdFilter7x7Blk( const AlfClassifier *classifier, const PelUnitBuf& recDst
   const short *fClipSet, const ClpRng &clpRng, const CodingStructure &cs, const int vbCTUHeight,
   int vbPos)
 {
-  CHECK((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
-  CHECK(isChroma(compId), "7x7 ALF filter is meant for luma only");
+  CHECK_vvenc((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
+  CHECK_vvenc(isChroma(compId), "7x7 ALF filter is meant for luma only");
 
 
   const CPelBuf srcBuffer = recSrc.get(compId);
@@ -679,10 +679,10 @@ void simdFilter7x7Blk( const AlfClassifier *classifier, const PelUnitBuf& recDst
   constexpr size_t STEP_X = 8;
   constexpr size_t STEP_Y = 4;
 
-  CHECK(blk.y % STEP_Y, "Wrong startHeight in filtering");
-  CHECK(blk.x % STEP_X, "Wrong startWidth in filtering");
-  CHECK(height % STEP_Y, "Wrong endHeight in filtering");
-  CHECK(width % STEP_X, "Wrong endWidth in filtering");
+  CHECK_vvenc(blk.y % STEP_Y, "Wrong startHeight in filtering");
+  CHECK_vvenc(blk.x % STEP_X, "Wrong startWidth in filtering");
+  CHECK_vvenc(height % STEP_Y, "Wrong endHeight in filtering");
+  CHECK_vvenc(width % STEP_X, "Wrong endWidth in filtering");
 
   const Pel* src = srcBuffer.buf + blk.y * srcStride + blk.x;
   Pel*       dst = dstBuffer.buf + blkDst.y * dstStride + blkDst.x;
@@ -1119,9 +1119,9 @@ void simdFilterBlkCcAlf( const PelBuf &dstBuf, const CPelUnitBuf &recSrc, const 
                           const Area &blkSrc, const ComponentID compId, const int16_t *filterCoeff,
                           const ClpRngs &clpRngs, CodingStructure &cs, int vbCTUHeight, int vbPos )
 {
-  CHECK( 1 << floorLog2( vbCTUHeight ) != vbCTUHeight, "Not a power of 2" );
+  CHECK_vvenc(1 << floorLog2(vbCTUHeight ) != vbCTUHeight, "Not a power of 2" );
 
-  CHECK( !isChroma( compId ), "Must be chroma" );
+  CHECK_vvenc(!isChroma(compId ), "Must be chroma" );
 
   static constexpr int scaleBits = 7; // 8-bits
   static constexpr int clsSizeY  = 4;
@@ -1136,10 +1136,10 @@ void simdFilterBlkCcAlf( const PelBuf &dstBuf, const CPelUnitBuf &recSrc, const 
   const int scaleX      = getComponentScaleX( compId, nChromaFormat );
   const int scaleY      = getComponentScaleY( compId, nChromaFormat );
 
-  CHECK( startHeight % clsSizeY, "Wrong startHeight in filtering" );
-  CHECK( startWidth % clsSizeX, "Wrong startWidth in filtering" );
-  CHECK( ( endHeight - startHeight ) % clsSizeY, "Wrong endHeight in filtering" );
-  CHECK( ( endWidth - startWidth ) % clsSizeX, "Wrong endWidth in filtering" );
+  CHECK_vvenc(startHeight % clsSizeY, "Wrong startHeight in filtering" );
+  CHECK_vvenc(startWidth % clsSizeX, "Wrong startWidth in filtering" );
+  CHECK_vvenc((endHeight - startHeight ) % clsSizeY, "Wrong endHeight in filtering" );
+  CHECK_vvenc((endWidth - startWidth ) % clsSizeX, "Wrong endWidth in filtering" );
 
   const CPelBuf& srcBuf  = recSrc.get( COMP_Y );
   const int   lumaStride = srcBuf.stride;

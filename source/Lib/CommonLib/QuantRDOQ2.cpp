@@ -88,7 +88,7 @@ struct coeffGroupRDStats
 QuantRDOQ2::QuantRDOQ2( const Quant* other, bool useScalingLists ) : QuantRDOQ( other, useScalingLists ), m_isErrScaleListOwner( false ), m_iLambda( 0 )
 {
   const QuantRDOQ2 *rdoq2 = dynamic_cast<const QuantRDOQ2*>( other );
-  CHECK( other && !rdoq2, "The RDOQ cast must be successfull!" );
+  CHECK_vvenc(other && !rdoq2, "The RDOQ cast must be successfull!" );
   xInitScalingList( rdoq2 );
 }
 
@@ -507,7 +507,7 @@ int QuantRDOQ2::xRateDistOptQuantFast( TransformUnit &tu, const ComponentID &com
   const uint32_t log2CGSize         = cctx.log2CGSize();
 
   int scalingListType = getScalingListType( tu.cu->predMode, compID );
-  CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+  CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
 
   const TCoeff    *plSrcCoeff   = pSrc.buf;
         TCoeffSig *piDstCoeff   = tu.getCoeffs( compID ).buf;
@@ -1159,7 +1159,7 @@ int QuantRDOQ2::xRateDistOptQuantFast( TransformUnit &tu, const ComponentID &com
 
   if( iLastScanPos < 0 )
   {
-    CHECK( uiAbsSum != 0, "Illegal" );
+    CHECK_vvenc(uiAbsSum != 0, "Illegal" );
     return 0;
   }
 

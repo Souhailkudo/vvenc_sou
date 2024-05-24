@@ -179,8 +179,8 @@ uint64_t findDistortionPlane( const CPelBuf& pic0, const CPelBuf& pic1, uint32_t
   const  Pel*  pSrc0 = pic0.bufAt(0, 0);
   const  Pel*  pSrc1 = pic1.bufAt(0, 0);
 
-  CHECK(pic0.width  != pic1.width , "Unspecified error");
-  CHECK(pic0.height != pic1.height, "Unspecified error");
+  CHECK_vvenc(pic0.width != pic1.width , "Unspecified error");
+  CHECK_vvenc(pic0.height != pic1.height, "Unspecified error");
 
   if( rshift > 0 )
   {
@@ -227,8 +227,8 @@ void EncPicture::xCalcDistortion( Picture& pic, const SPS& sps )
     const CPelBuf&    p = cPicD.get(compID);
     const CPelBuf&    o = org.get(compID);
 
-    CHECK(!( p.width  == o.width), "Unspecified error");
-    CHECK(!( p.height == o.height), "Unspecified error");
+    CHECK_vvenc(!(p.width == o.width), "Unspecified error");
+    CHECK_vvenc(!(p.height == o.height), "Unspecified error");
 
     const uint32_t   width  = p.width  - (m_pcEncCfg->m_aiPad[ 0 ] >> getComponentScaleX(compID, format));
     const uint32_t   height = p.height - (m_pcEncCfg->m_aiPad[ 1 ] >> getComponentScaleY(compID, format));
@@ -251,7 +251,7 @@ void EncPicture::xInitPicEncoder( Picture& pic )
 {
   Slice* slice = pic.cs->slice;
 
-  CHECK( slice != pic.slices[0], "Slice pointers don't match!" );
+  CHECK_vvenc(slice != pic.slices[0], "Slice pointers don't match!" );
 
   if( m_pcEncCfg->m_RCTargetBitrate > 0 )
   {

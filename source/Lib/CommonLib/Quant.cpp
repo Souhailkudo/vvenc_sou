@@ -530,7 +530,7 @@ void Quant::dequant(const TransformUnit& tu,
   }
 
   const TCoeffSig  *const piQCoef = coef;
-  CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+  CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
 
   // Represents scaling through forward transform
   const int  originalTransformShift = getTransformShift(channelBitDepth, area.size(), maxLog2TrDynamicRange);
@@ -737,7 +737,7 @@ void Quant::quant(TransformUnit& tu, const ComponentID compID, const CCoeffBuf& 
 
     TCoeff deltaU[MAX_TB_SIZEY * MAX_TB_SIZEY];
     int scalingListType           = getScalingListType(tu.cu->predMode, compID);
-    CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+    CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
     const uint32_t uiLog2TrWidth  = Log2(uiWidth);
     const uint32_t uiLog2TrHeight = Log2(uiHeight);
     int *piQuantCoeff             = getQuantCoeff(scalingListType, cQP.rem(useTransformSkip), uiLog2TrWidth, uiLog2TrHeight);
@@ -829,7 +829,7 @@ bool Quant::xNeedRDOQ(TransformUnit& tu, const ComponentID compID, const CCoeffB
   const int  maxLog2TrDynamicRange = sps.getMaxLog2TrDynamicRange(toChannelType(compID));
 
   int scalingListType = getScalingListType(tu.cu->predMode, compID);
-  CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+  CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
 
   const uint32_t uiLog2TrWidth  = Log2(uiWidth);
   const uint32_t uiLog2TrHeight = Log2(uiHeight);

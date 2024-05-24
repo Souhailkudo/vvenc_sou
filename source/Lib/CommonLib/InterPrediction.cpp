@@ -358,14 +358,14 @@ void InterPrediction::xPredInterUni(const CodingUnit& cu, const RefPicList& refP
   int iRefIdx = cu.refIdx[refPicList];
   Mv mv[3];
   bool isIBC = false;
-  CHECK(!CU::isIBC(cu) && cu.lwidth() == 4 && cu.lheight() == 4, "invalid 4x4 inter blocks");
+  CHECK_vvenc(!CU::isIBC(cu) && cu.lwidth() == 4 && cu.lheight() == 4, "invalid 4x4 inter blocks");
   if (CU::isIBC(cu))
   {
     isIBC = true;
   }
   if (cu.affine)
   {
-    CHECK(iRefIdx < 0, "iRefIdx incorrect.");
+    CHECK_vvenc(iRefIdx < 0, "iRefIdx incorrect.");
 
     mv[0] = cu.mv[refPicList][0];
     mv[1] = cu.mv[refPicList][1];
@@ -407,7 +407,7 @@ void InterPrediction::xPredInterUni(const CodingUnit& cu, const RefPicList& refP
 
 void InterPrediction::xPredInterBi( const CodingUnit& cu, PelUnitBuf& yuvPred, const bool bdofApplied, PelUnitBuf *yuvPredTmp )
 {
-  CHECK( !cu.affine && cu.refIdx[0] >= 0 && cu.refIdx[1] >= 0 && ( cu.lwidth() + cu.lheight() == 12 ), "invalid 4x8/8x4 bi-predicted blocks" );
+  CHECK_vvenc(!cu.affine && cu.refIdx[0] >= 0 && cu.refIdx[1] >= 0 && (cu.lwidth() + cu.lheight() == 12 ), "invalid 4x8/8x4 bi-predicted blocks" );
 
   PelUnitBuf puBuf[NUM_REF_PIC_LIST_01];
   for (uint32_t refList = 0; refList < NUM_REF_PIC_LIST_01; refList++)
@@ -419,9 +419,9 @@ void InterPrediction::xPredInterBi( const CodingUnit& cu, PelUnitBuf& yuvPred, c
 
     RefPicList refPicList = (refList ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
 
-    CHECK(CU::isIBC(cu) && refPicList != REF_PIC_LIST_0, "Invalid interdir for ibc mode");
-    CHECK(CU::isIBC(cu) && cu.refIdx[refList] != MAX_NUM_REF, "Invalid reference index for ibc mode");
-    CHECK((CU::isInter(cu) && cu.refIdx[refList] >= cu.cs->slice->numRefIdx[ refPicList ]), "Invalid reference index");
+    CHECK_vvenc(CU::isIBC(cu) && refPicList != REF_PIC_LIST_0, "Invalid interdir for ibc mode");
+    CHECK_vvenc(CU::isIBC(cu) && cu.refIdx[refList] != MAX_NUM_REF, "Invalid reference index for ibc mode");
+    CHECK_vvenc((CU::isInter(cu) && cu.refIdx[refList] >= cu.cs->slice->numRefIdx[ refPicList ]), "Invalid reference index");
 
     puBuf[refList] = m_yuvPred[refList].getCompactBuf( cu );
 
@@ -446,7 +446,7 @@ void InterPrediction::motionCompensationIBC( CodingUnit& cu, PelUnitBuf& predBuf
     {
       bool luma = cu.mcControl <= 3;
       bool chroma = (cu.mcControl >> 1) != 1;
-      CHECK(!luma, "IBC only for Chroma is not allowed.");
+      CHECK_vvenc(!luma, "IBC only for Chroma is not allowed.");
       xIntraBlockCopyIBC(cu, predBuf, COMP_Y);
       if (chroma && isChromaEnabled(cu.chromaFormat))
       {
@@ -469,7 +469,7 @@ bool InterPrediction::motionCompensation( CodingUnit& cu, PelUnitBuf& predBuf, c
   }
   else
   {
-    CHECK( !cu.affine && cu.refIdx[0] >= 0 && cu.refIdx[1] >= 0 && ( cu.lwidth() + cu.lheight() == 12 ), "invalid 4x8/8x4 bi-predicted blocks" );
+    CHECK_vvenc(!cu.affine && cu.refIdx[0] >= 0 && cu.refIdx[1] >= 0 && (cu.lwidth() + cu.lheight() == 12 ), "invalid 4x8/8x4 bi-predicted blocks" );
     bool bdofApplied = false;
     if( cu.cs->sps->BDOF && ( !cu.cs->picHeader->disBdofFlag ) )
     {
@@ -770,7 +770,7 @@ void InterPredInterpolation::xPredInterBlk ( const ComponentID compID, const Cod
     height = height + 2 * BDOF_EXTEND_SIZE + 2;
 
     // change MC output
-    CHECK( refPicList >= NUM_REF_PIC_LIST_01, "Wrong refpiclist" );
+    CHECK_vvenc(refPicList >= NUM_REF_PIC_LIST_01, "Wrong refpiclist" );
     dstBuf.stride = width;
     dstBuf.buf = m_filteredBlockTmp[2 + refPicList][compID] + 2 * dstBuf.stride + 2;
   }
@@ -965,7 +965,7 @@ void InterPredInterpolation::xWeightedAverage( const CodingUnit& cu, const CPelU
 {
   const bool lumaOnly = (cu.mcControl >> 1) == 1;
   const bool chromaOnly = cu.mcControl > 3;
-  CHECK((chromaOnly && lumaOnly), "should not happen");
+  CHECK_vvenc((chromaOnly && lumaOnly), "should not happen");
 
   const ClpRngs& clpRngs = cu.slice->clpRngs;
   const int iRefIdx0 = cu.refIdx[0];
@@ -975,7 +975,7 @@ void InterPredInterpolation::xWeightedAverage( const CodingUnit& cu, const CPelU
   {
     if( cu.BcwIdx != BCW_DEFAULT && ( yuvPredTmp || !cu.ciip) )
     {
-      CHECK( bdofApplied, "Bcw is disallowed with BIO" );
+      CHECK_vvenc(bdofApplied, "Bcw is disallowed with BIO" );
       pcYuvDst.addWeightedAvg( pcYuvSrc0, pcYuvSrc1, clpRngs, cu.BcwIdx, chromaOnly, lumaOnly );
       if( yuvPredTmp )
       {
@@ -1242,7 +1242,7 @@ void DMVR::xFinalPaddedMCForDMVR( const CodingUnit& cu, PelUnitBuf* dstBuf, cons
       int deltaIntMvX = (cMv.hor >> mvshiftTemp) - (startMv.hor >> mvshiftTemp);
       int deltaIntMvY = (cMv.ver >> mvshiftTemp) - (startMv.ver >> mvshiftTemp);
 
-      CHECK((abs(deltaIntMvX) > DMVR_NUM_ITERATION) || (abs(deltaIntMvY) > DMVR_NUM_ITERATION), "not expected DMVR movement");
+      CHECK_vvenc((abs(deltaIntMvX) > DMVR_NUM_ITERATION) || (abs(deltaIntMvY) > DMVR_NUM_ITERATION), "not expected DMVR movement");
 
       if (deltaIntMvX || deltaIntMvY)
       {
@@ -1547,8 +1547,8 @@ void InterPredInterpolation::xPredAffineBlk(const ComponentID compID, const Codi
   int blockWidth = AFFINE_MIN_BLOCK_SIZE;
   int blockHeight = AFFINE_MIN_BLOCK_SIZE;
 
-  CHECK(blockWidth  > (width >> iScaleX), "Sub Block width  > Block width");
-  CHECK(blockHeight > (height >> iScaleY), "Sub Block height > Block height");
+  CHECK_vvenc(blockWidth > (width >> iScaleX), "Sub Block width  > Block width");
+  CHECK_vvenc(blockHeight > (height >> iScaleY), "Sub Block height > Block height");
   const int MVBUFFER_SIZE = MAX_CU_SIZE / MIN_PU_SIZE;
 
   const int cxWidth = width >> iScaleX;
@@ -1671,12 +1671,12 @@ void InterPredInterpolation::xPredAffineBlk(const ComponentID compID, const Codi
   int scaleYLuma = getComponentScaleY(COMP_Y, chFmt);
   if ((cu.mcControl > 3) && (compID == COMP_Cb) && cu.chromaFormat != CHROMA_444)
   {
-    CHECK(compID == COMP_Y, "Chroma only subblock MV calculation should not apply to Luma");
+    CHECK_vvenc(compID == COMP_Y, "Chroma only subblock MV calculation should not apply to Luma");
     int lumaBlockWidth = AFFINE_MIN_BLOCK_SIZE;
     int lumaBlockHeight = AFFINE_MIN_BLOCK_SIZE;
 
-    CHECK(lumaBlockWidth > (width >> scaleXLuma), "Sub Block width  > Block width");
-    CHECK(lumaBlockHeight > (height >> scaleYLuma), "Sub Block height > Block height");
+    CHECK_vvenc(lumaBlockWidth > (width >> scaleXLuma), "Sub Block width  > Block width");
+    CHECK_vvenc(lumaBlockHeight > (height >> scaleYLuma), "Sub Block height > Block height");
 
     const int cxWidthLuma = width >> scaleXLuma;
     const int cxHeightLuma = height >> scaleYLuma;

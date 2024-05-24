@@ -1342,7 +1342,7 @@ static void simdInterpolateN2_10BIT_M4(const int16_t* src, int srcStride, int16_
   for (int n = 0; n < 2; n++)
     mmCoeff[n] = _mm_set1_epi16(c[n]);
 
-  CHECK(isLast, "Not Supported");
+  CHECK_vvenc(isLast, "Not Supported");
 
 #if USE_AVX2
   __m256i mm256Offset = _mm256_set1_epi16(offset);
@@ -1408,7 +1408,7 @@ static void simdFilter( const ClpRng& clpRng, Pel const *src, int srcStride, Pel
   int shift    = IF_FILTER_PREC;
   // with the current settings (IF_INTERNAL_PREC = 14 and IF_FILTER_PREC = 6), though headroom can be
   // negative for bit depths greater than 14, shift will remain non-negative for bit depths of 8->20
-  CHECK( shift < 0, "Negative shift" );
+  CHECK_vvenc(shift < 0, "Negative shift" );
 
 #define USE_M16_AVX2_IF 1
 

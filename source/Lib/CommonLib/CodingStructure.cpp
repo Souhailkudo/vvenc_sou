@@ -159,7 +159,7 @@ CodingUnit* CodingStructure::getLumaCU( const Position& pos )
 {
   const ChannelType effChType = CH_L;
   const CompArea& _blk = area.blocks[effChType];
-  CHECK( !_blk.contains( pos ), "must contain the pos" );
+  CHECK_vvenc(!_blk.contains(pos ), "must contain the pos" );
 
   return m_cuPtr[effChType][rsAddr( pos, _blk.pos(), _blk.width, unitScale[effChType] )];
 }
@@ -651,7 +651,7 @@ void CodingStructure::addMiToLut(static_vector<HPMVInfo, MAX_NUM_HMVP_CANDS> &lu
 
 void CodingStructure::rebindPicBufs()
 {
-  CHECK( parent, "rebindPicBufs can only be used for the top level CodingStructure" );
+  CHECK_vvenc(parent, "rebindPicBufs can only be used for the top level CodingStructure" );
 
   if( !picture->m_picBufs[ PIC_RECONSTRUCTION ].bufs.empty() ) m_reco.createFromBuf( picture->m_picBufs[ PIC_RECONSTRUCTION ] );
   else                                                         m_reco.destroy();
@@ -686,7 +686,7 @@ void CodingStructure::destroyCoeffs()
 
 void CodingStructure::initSubStructure( CodingStructure& subStruct, const ChannelType _chType, const UnitArea& subArea, const bool isTuEnc, PelStorage* pOrgBuffer, PelStorage* pRspBuffer )
 {
-  CHECK( this == &subStruct, "Trying to init self as sub-structure" );
+  CHECK_vvenc(this == &subStruct, "Trying to init self as sub-structure" );
 
   subStruct.parent = this;
 
@@ -949,7 +949,7 @@ void CodingStructure::compactResize( const UnitArea& _area )
 
   for( uint32_t i = 0; i < _area.blocks.size(); i++ )
   {
-    CHECK( _maxArea.blocks[i].area() < _area.blocks[i].area(), "Trying to init sub-structure of incompatible size" );
+    CHECK_vvenc(_maxArea.blocks[i].area() < _area.blocks[i].area(), "Trying to init sub-structure of incompatible size" );
   }
 
   area = _area;
@@ -1093,7 +1093,7 @@ PelBuf CodingStructure::getBuf( const CompArea& blk, const PictureType type )
     buf = &m_rspreco;
   }
 
-  CHECK( !buf, "Unknown buffer requested" );
+  CHECK_vvenc(!buf, "Unknown buffer requested" );
 
   CHECKD( !area.blocks[compID].contains( blk ), "Buffer not contained in self requested" );
 
@@ -1132,7 +1132,7 @@ const CPelBuf CodingStructure::getBuf( const CompArea& blk, const PictureType ty
     buf = &m_rspreco;
   }
 
-  CHECK( !buf, "Unknown buffer requested" );
+  CHECK_vvenc(!buf, "Unknown buffer requested" );
 
   CHECKD( !area.blocks[compID].contains( blk ), "Buffer not contained in self requested" );
 

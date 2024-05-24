@@ -88,21 +88,21 @@ struct MvField
 
   void setMvField( Mv const & cMv, const int iRefIdx )
   {
-    CHECK( iRefIdx == -1 && cMv != Mv(0,0), "Must not happen." );
+    CHECK_vvenc(iRefIdx == -1 && cMv != Mv(0, 0), "Must not happen." );
     mv     = cMv;
     refIdx = iRefIdx;
   }
 
   bool operator==( const MvField& other ) const
   {
-    CHECK( refIdx == -1 && mv != Mv(0,0), "Error in operator== of MvField." );
-    CHECK( other.refIdx == -1 && other.mv != Mv(0,0), "Error in operator== of MvField." );
+    CHECK_vvenc(refIdx == -1 && mv != Mv(0, 0), "Error in operator== of MvField." );
+    CHECK_vvenc(other.refIdx == -1 && other.mv != Mv(0, 0), "Error in operator== of MvField." );
     return refIdx == other.refIdx && mv == other.mv;
   }
   bool operator!=( const MvField& other ) const
   {
-    CHECK( refIdx == -1 && mv != Mv(0,0), "Error in operator!= of MvField." );
-    CHECK( other.refIdx == -1 && other.mv != Mv(0,0), "Error in operator!= of MvField." );
+    CHECK_vvenc(refIdx == -1 && mv != Mv(0, 0), "Error in operator!= of MvField." );
+    CHECK_vvenc(other.refIdx == -1 && other.mv != Mv(0, 0), "Error in operator!= of MvField." );
     return refIdx != other.refIdx || mv != other.mv;
   }
 };

@@ -359,7 +359,7 @@ struct SliceMap
 
   void  addCtusToSlice( uint32_t startX, uint32_t stopX, uint32_t startY, uint32_t stopY, uint32_t picWidthInCtbsY )
   {
-    CHECK( startX >= stopX || startY >= stopY, "Invalid slice definition");
+    CHECK_vvenc(startX >= stopX || startY >= stopY, "Invalid slice definition");
     for( uint32_t ctbY = startY; ctbY < stopY; ctbY++ )
     {
       for( uint32_t ctbX = startX; ctbX < stopX; ctbX++ )
@@ -804,12 +804,12 @@ struct SPS
 
   static int        getWinUnitX (int chromaFormatIdc)
   {
-    CHECK(chromaFormatIdc < 0 || chromaFormatIdc >= NUM_CHROMA_FORMAT, "Invalid chroma format parameter");
+    CHECK_vvenc(chromaFormatIdc < 0 || chromaFormatIdc >= NUM_CHROMA_FORMAT, "Invalid chroma format parameter");
     return (chromaFormatIdc == 1 || chromaFormatIdc == 2) ? 2 : 1;
   }
   static int        getWinUnitY (int chromaFormatIdc)
   {
-    CHECK(chromaFormatIdc < 0 || chromaFormatIdc >= NUM_CHROMA_FORMAT, "Invalid chroma format parameter");
+    CHECK_vvenc(chromaFormatIdc < 0 || chromaFormatIdc >= NUM_CHROMA_FORMAT, "Invalid chroma format parameter");
     return (chromaFormatIdc == 1) ? 2 : 1;
   }
 
@@ -918,14 +918,14 @@ public:
   uint32_t        getSubPicIdxFromSubPicId( uint32_t subPicId ) const;
   const ChromaQpAdj&     getChromaQpOffsetListEntry( int cuChromaQpOffsetIdxPlus1 ) const
   {
-    CHECK(cuChromaQpOffsetIdxPlus1 >= chromaQpOffsetListLen+1, "Invalid chroma QP offset");
+    CHECK_vvenc(cuChromaQpOffsetIdxPlus1 >= chromaQpOffsetListLen + 1, "Invalid chroma QP offset");
     return chromaQpAdjTableIncludingNullEntry[cuChromaQpOffsetIdxPlus1]; // Array includes entry [0] for the null offset used when cu_chroma_qp_offset_flag=0, and entries [cu_chroma_qp_offset_idx+1...] otherwise
   }
 
 
   void                   setChromaQpOffsetListEntry( int cuChromaQpOffsetIdxPlus1, int cbOffset, int crOffset, int jointCbCrOffset )
   {
-    CHECK(cuChromaQpOffsetIdxPlus1 == 0 || cuChromaQpOffsetIdxPlus1 > MAX_QP_OFFSET_LIST_SIZE, "Invalid chroma QP offset");
+    CHECK_vvenc(cuChromaQpOffsetIdxPlus1 == 0 || cuChromaQpOffsetIdxPlus1 > MAX_QP_OFFSET_LIST_SIZE, "Invalid chroma QP offset");
     chromaQpAdjTableIncludingNullEntry[cuChromaQpOffsetIdxPlus1].u.comp.CbOffset = cbOffset; // Array includes entry [0] for the null offset used when cu_chroma_qp_offset_flag=0, and entries [cu_chroma_qp_offset_idx+1...] otherwise
     chromaQpAdjTableIncludingNullEntry[cuChromaQpOffsetIdxPlus1].u.comp.CrOffset = crOffset;
     chromaQpAdjTableIncludingNullEntry[cuChromaQpOffsetIdxPlus1].u.comp.JointCbCrOffset = jointCbCrOffset;
@@ -1306,7 +1306,7 @@ public:
   void                        clearSubstreamSizes( )                                 { return substreamSizes.clear();                              }
   uint32_t                    getNumberOfSubstreamSizes( )                           { return (uint32_t) substreamSizes.size();                    }
   void                        addSubstreamSize( uint32_t size )                      { substreamSizes.push_back(size);                             }
-  uint32_t                    getSubstreamSize( uint32_t idx )                       { CHECK(idx>=getNumberOfSubstreamSizes(),"Invalid index"); return substreamSizes[idx]; }
+  uint32_t                    getSubstreamSize( uint32_t idx )                       { CHECK_vvenc(idx >= getNumberOfSubstreamSizes(), "Invalid index"); return substreamSizes[idx]; }
 
   void                        setDefaultClpRng( const SPS& sps );
   unsigned                    getMinPictureDistance()                           const ;
@@ -1362,7 +1362,7 @@ public:
 
   T *allocatePS( const int psId )
   {
-    CHECK( psId >= m_maxId, "Invalid PS id" );
+    CHECK_vvenc(psId >= m_maxId, "Invalid PS id" );
     if ( m_paramsetMap.find(psId) == m_paramsetMap.end() )
     {
       m_paramsetMap[psId].bChanged     = true;
@@ -1387,7 +1387,7 @@ public:
 
   void storePS( int psId, T *ps )
   {
-    CHECK( psId >= m_maxId, "Invalid PS id" );
+    CHECK_vvenc(psId >= m_maxId, "Invalid PS id" );
     if( m_paramsetMap.find( psId ) != m_paramsetMap.end() )
     {
       delete m_paramsetMap[psId].parameterSet;
@@ -1398,7 +1398,7 @@ public:
 
   void storePS(int psId, T *ps, const std::vector<uint8_t> *pNaluData)
   {
-    CHECK( psId >= m_maxId, "Invalid PS id" );
+    CHECK_vvenc(psId >= m_maxId, "Invalid PS id" );
     if ( m_paramsetMap.find(psId) != m_paramsetMap.end() )
     {
       MapData<T> &mapData=m_paramsetMap[psId];

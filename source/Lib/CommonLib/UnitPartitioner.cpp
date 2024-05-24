@@ -342,7 +342,7 @@ void Partitioner::splitCurrArea( const PartSplit split, const CodingStructure& c
   back.parts = &m_partBuf[m_partBufIdx];
   int numParts;
 
-  CHECK( m_partBufIdx > partBufSize, "Partition buffer overflow" );
+  CHECK_vvenc(m_partBufIdx > partBufSize, "Partition buffer overflow" );
 
   switch( split )
   {
@@ -387,7 +387,7 @@ void Partitioner::splitCurrArea( const PartSplit split, const CodingStructure& c
   back.numParts = numParts;
   m_partBufIdx += numParts;
 
-  CHECK( m_partBufIdx > partBufSize, "Partition buffer overflow" );
+  CHECK_vvenc(m_partBufIdx > partBufSize, "Partition buffer overflow" );
 
   currDepth++;
   currSubdiv++;
@@ -424,8 +424,8 @@ void Partitioner::splitCurrArea( const PartSplit split, const CodingStructure& c
   }
   else if( split == CU_QUAD_SPLIT )
   {
-    CHECK( currBtDepth > 0, "Cannot split a non-square area other than with a binary split" );
-    CHECK( currMtDepth > 0, "Cannot split a non-square area other than with a binary split" );
+    CHECK_vvenc(currBtDepth > 0, "Cannot split a non-square area other than with a binary split" );
+    CHECK_vvenc(currMtDepth > 0, "Cannot split a non-square area other than with a binary split" );
     currMtDepth = 0;
     currBtDepth = 0;
     currQtDepth++;
@@ -671,7 +671,7 @@ void Partitioner::exitCurrSplit()
   m_partStack.pop_back();
   m_partBufIdx -= numParts;
 
-  CHECK( currDepth == 0, "depth is '0', although a split was performed" );
+  CHECK_vvenc(currDepth == 0, "depth is '0', although a split was performed" );
   currDepth--;
   currSubdiv--;
   if( currQgEnable() )
@@ -684,39 +684,39 @@ void Partitioner::exitCurrSplit()
 
   if( currSplit == CU_HORZ_SPLIT || currSplit == CU_VERT_SPLIT || currSplit == CU_TRIH_SPLIT || currSplit == CU_TRIV_SPLIT )
   {
-    CHECK( !m_partStack.back().checkdIfImplicit, "Didn't check if the current split is implicit" );
-    CHECK( currBtDepth == 0, "BT depth is '0', athough a BT split was performed" );
-    CHECK( currMtDepth == 0, "MT depth is '0', athough a BT split was performed" );
+    CHECK_vvenc(!m_partStack.back().checkdIfImplicit, "Didn't check if the current split is implicit" );
+    CHECK_vvenc(currBtDepth == 0, "BT depth is '0', athough a BT split was performed" );
+    CHECK_vvenc(currMtDepth == 0, "MT depth is '0', athough a BT split was performed" );
     currMtDepth--;
     if( m_partStack.back().isImplicit ) currImplicitBtDepth--;
     currBtDepth--;
     if( ( currSplit == CU_TRIH_SPLIT || currSplit == CU_TRIV_SPLIT ) && currIndex != 1 )
     {
-      CHECK( currBtDepth == 0, "BT depth is '0', athough a TT split was performed" );
+      CHECK_vvenc(currBtDepth == 0, "BT depth is '0', athough a TT split was performed" );
       currBtDepth--;
       currSubdiv--;
     }
   }
   else if( currSplit == TU_MAX_TR_SPLIT )
   {
-    CHECK( currTrDepth == 0, "TR depth is '0', although a TU split was performed" );
+    CHECK_vvenc(currTrDepth == 0, "TR depth is '0', although a TU split was performed" );
     currTrDepth--;
   }
   else if( currSplit >= SBT_VER_HALF_POS0_SPLIT && currSplit <= SBT_HOR_QUAD_POS1_SPLIT )
   {
-    CHECK( currTrDepth == 0, "TR depth is '0', although a TU split was performed" );
+    CHECK_vvenc(currTrDepth == 0, "TR depth is '0', although a TU split was performed" );
     currTrDepth--;
   }
   else if ((currSplit == TU_1D_HORZ_SPLIT) || (currSplit == TU_1D_VERT_SPLIT))
   {
-    CHECK(currTrDepth == 0, "TR depth is '0', although a TU split was performed");
+    CHECK_vvenc(currTrDepth == 0, "TR depth is '0', although a TU split was performed");
     currTrDepth--;
   }
   else
   {
-    CHECK( currTrDepth > 0, "RQT found with QTBT partitioner" );
+    CHECK_vvenc(currTrDepth > 0, "RQT found with QTBT partitioner" );
 
-    CHECK( currQtDepth == 0, "QT depth is '0', although a QT split was performed" );
+    CHECK_vvenc(currQtDepth == 0, "QT depth is '0', although a QT split was performed" );
     currQtDepth--;
     currSubdiv--;
   }
@@ -893,7 +893,7 @@ int PartitionerImpl::getTUIntraSubPartitions( Partitioning& sub, const UnitArea 
       blkY.height = splitDimensionSize;
       blkY.y = i > 0 ? sub[i - 1].blocks[COMP_Y].y + splitDimensionSize : blkY.y;
 
-      CHECK( sub[i].lumaSize().height < 1, "the cs split causes the block to be smaller than the minimal TU size" );
+      CHECK_vvenc(sub[i].lumaSize().height < 1, "the cs split causes the block to be smaller than the minimal TU size" );
     }
   }
   else if( splitType == TU_1D_VERT_SPLIT )
@@ -907,7 +907,7 @@ int PartitionerImpl::getTUIntraSubPartitions( Partitioning& sub, const UnitArea 
 
       blkY.width = splitDimensionSize;
       blkY.x = i > 0 ? sub[i - 1].blocks[COMP_Y].x + splitDimensionSize : blkY.x;
-      CHECK( sub[i].lumaSize().width < 1, "the split causes the block to be smaller than the minimal TU size" );
+      CHECK_vvenc(sub[i].lumaSize().width < 1, "the split causes the block to be smaller than the minimal TU size" );
     }
   }
   else
@@ -998,7 +998,7 @@ int PartitionerImpl::getSbtTuTiling( Partitioning& dst, const UnitArea& cuArea, 
   int numTiles      = 2;
   int widthFactor, heightFactor, xOffsetFactor, yOffsetFactor;
 
-  CHECK( !(splitType >= SBT_VER_HALF_POS0_SPLIT && splitType <= SBT_HOR_QUAD_POS1_SPLIT), "wrong" );
+  CHECK_vvenc(!(splitType >= SBT_VER_HALF_POS0_SPLIT && splitType <= SBT_HOR_QUAD_POS1_SPLIT), "wrong" );
 
   for( int i = 0; i < numTiles; i++ )
   {

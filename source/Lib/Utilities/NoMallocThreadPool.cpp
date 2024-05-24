@@ -81,7 +81,7 @@ NoMallocThreadPool::~NoMallocThreadPool()
 
 bool NoMallocThreadPool::processTasksOnMainThread()
 {
-  CHECK( m_threads.size() != 0, "should not be used with multiple threads" );
+  CHECK_vvenc(m_threads.size() != 0, "should not be used with multiple threads" );
 
   bool         progress      = false;
   TaskIterator firstFailedIt = m_tasks.end();

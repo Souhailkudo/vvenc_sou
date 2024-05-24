@@ -181,13 +181,13 @@ void IntraSearch::xEstimateLumaRdModeList(int& numModesForFullRD,
   const double   sqrtLambdaForFirstPass = m_pcRdCost->getMotionLambda() * FRAC_BITS_SCALE;
   const int numModesAvailable = NUM_LUMA_MODE; // total number of Intra modes
 
-  CHECK(numModesForFullRD >= numModesAvailable, "Too many modes for full RD search");
+  CHECK_vvenc(numModesForFullRD >= numModesAvailable, "Too many modes for full RD search");
 
   const SPS& sps     = *cu.cs->sps;
   const bool fastMip = sps.MIP && m_pcEncCfg->m_useFastMIP;
 
   // this should always be true
-  CHECK( !cu.Y().valid(), "CU is not valid" );
+  CHECK_vvenc(!cu.Y().valid(), "CU is not valid" );
 
   const CompArea& area = cu.Y();
 
@@ -470,7 +470,7 @@ bool IntraSearch::estIntraPredLumaQT(CodingUnit &cu, Partitioner &partitioner, d
 
   xEstimateLumaRdModeList(numModesForFullRD, RdModeList, HadModeList, CandCostList, CandHadList, cu, testMip);
 
-  CHECK( (size_t)numModesForFullRD != RdModeList.size(), "Inconsistent state!" );
+  CHECK_vvenc((size_t)numModesForFullRD != RdModeList.size(), "Inconsistent state!" );
 
   // after this point, don't use numModesForFullRD
   if( m_pcEncCfg->m_usePbIntraFast && !cs.slice->isIntra() && RdModeList.size() < numModesAvailable )
@@ -621,10 +621,10 @@ bool IntraSearch::estIntraPredLumaQT(CodingUnit &cu, Partitioner &partitioner, d
       {
         m_ispTestedModes[0].intraWasTested = true;
       }
-      CHECK(cu.mipFlag && cu.multiRefIdx, "Error: combination of MIP and MRL not supported");
-      CHECK(cu.multiRefIdx && (cu.intraDir[0] == PLANAR_IDX), "Error: combination of MRL and Planar mode not supported");
-      CHECK(cu.ispMode && cu.mipFlag, "Error: combination of ISP and MIP not supported");
-      CHECK(cu.ispMode && cu.multiRefIdx, "Error: combination of ISP and MRL not supported");
+      CHECK_vvenc(cu.mipFlag && cu.multiRefIdx, "Error: combination of MIP and MRL not supported");
+      CHECK_vvenc(cu.multiRefIdx && (cu.intraDir[0] == PLANAR_IDX), "Error: combination of MRL and Planar mode not supported");
+      CHECK_vvenc(cu.ispMode && cu.mipFlag, "Error: combination of ISP and MIP not supported");
+      CHECK_vvenc(cu.ispMode && cu.multiRefIdx, "Error: combination of ISP and MRL not supported");
 
       // determine residual for partition
       cs.initSubStructure(*csTemp, partitioner.chType, cs.area, true);
@@ -1279,7 +1279,7 @@ void IntraSearch::xIntraCodingTUBlock(TransformUnit &tu, const ComponentID compI
   const CodingUnit& cu            = *tu.cu;
 
   //===== init availability pattern =====
-  CHECK( tu.jointCbCr && compID == COMP_Cr, "wrong combination of compID and jointCbCr" );
+  CHECK_vvenc(tu.jointCbCr && compID == COMP_Cr, "wrong combination of compID and jointCbCr" );
   bool jointCbCr = tu.jointCbCr && compID == COMP_Cb;
 
   if ( isLuma(compID) )
@@ -1955,7 +1955,7 @@ void IntraSearch::xIntraCodingLumaQT(CodingStructure& cs, Partitioner& partition
         cs.addTU(CS::getArea(cs, currArea, partitioner.chType, partitioner.treeType), partitioner.chType, cs.cus[0]);
       tu.depth = currDepth;
 
-      CHECK(!tu.Y().valid(), "Invalid TU");
+      CHECK_vvenc(!tu.Y().valid(), "Invalid TU");
       xIntraCodingTUBlock(tu, COMP_Y, false, singleDistLuma, &numSig, predBuf);
       //----- determine rate and r-d cost -----
       m_ispTestedModes[0].IspType = TU_NO_ISP;

@@ -535,7 +535,7 @@ template <typename T> constexpr static inline T ClipPel( const T a, const ClpRng
 
 template <typename T> inline void Check3( T minVal, T maxVal, T a)
 {
-  CHECK( ( a > maxVal ) || ( a < minVal ), "ERROR: Range check " << minVal << " >= " << a << " <= " << maxVal << " failed" );
+  CHECK_vvenc((a > maxVal ) || (a < minVal ), "ERROR: Range check " << minVal << " >= " << a << " <= " << maxVal << " failed" );
 }  ///< general min/max clip
 
 // global logger message callback function - DEPRECATED - will be removed in next major version

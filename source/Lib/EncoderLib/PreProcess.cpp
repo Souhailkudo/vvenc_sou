@@ -75,7 +75,7 @@ PreProcess::~PreProcess()
 void PreProcess::init( const VVEncCfg& encCfg, bool isFinalPass )
 {
   m_gopCfg.initGopList( encCfg.m_DecodingRefreshType, encCfg.m_IntraPeriod, encCfg.m_GOPSize, encCfg.m_leadFrames, encCfg.m_picReordering, encCfg.m_GOPList, encCfg.m_vvencMCTF );
-  CHECK( m_gopCfg.getMaxTLayer() != encCfg.m_maxTLayer, "max temporal layer of gop configuration does not match pre-configured value" );
+  CHECK_vvenc(m_gopCfg.getMaxTLayer() != encCfg.m_maxTLayer, "max temporal layer of gop configuration does not match pre-configured value" );
 
   m_encCfg      = &encCfg;
 
@@ -106,7 +106,7 @@ void PreProcess::processPictures( const PicList& picList, bool flush, AccessUnit
 
     // set gop entry
     m_gopCfg.getNextGopEntry( pic->m_picShared->m_gopEntry );
-    CHECK( pic->m_picShared->m_gopEntry.m_POC != pic->poc, "invalid state" );
+    CHECK_vvenc(pic->m_picShared->m_gopEntry.m_POC != pic->poc, "invalid state" );
 
     if( ! pic->m_picShared->isLeadTrail() )
     {
@@ -295,7 +295,7 @@ void PreProcess::xGetVisualActivity( Picture* pic, const PicList& picList ) cons
     const Picture* prevPics[ NUM_QPA_PREV_FRAMES ];
     xGetPrevPics( pic, picList, prevPics );
     // get luma visual activity for whole picture
-    CHECK( NUM_QPA_PREV_FRAMES < 2, "access out of array index" );
+    CHECK_vvenc(NUM_QPA_PREV_FRAMES < 2, "access out of array index" );
     picVisActY = xGetPicVisualActivity( pic, prevPics[ 0 ], prevPics[ 1 ] );
   }
 
@@ -319,7 +319,7 @@ void PreProcess::xGetVisualActivity( Picture* pic, const PicList& picList ) cons
 
 uint16_t PreProcess::xGetPicVisualActivity( const Picture* curPic, const Picture* refPic1, const Picture* refPic2 ) const
 {
-  CHECK( curPic == nullptr || refPic1 == nullptr, "no pictures given to compute visual activity" );
+  CHECK_vvenc(curPic == nullptr || refPic1 == nullptr, "no pictures given to compute visual activity" );
 
   const int bitDepth = m_encCfg->m_internalBitDepth[ CH_L ];
 

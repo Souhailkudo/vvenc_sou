@@ -298,7 +298,7 @@ void Picture::releaseSharedBuffers()
 
 void Picture::createTempBuffers( unsigned _maxCUSize )
 {
-  CHECK( !cs, "Coding structure is required a this point!" );
+  CHECK_vvenc(!cs, "Coding structure is required a this point!" );
 
   // SAO reads/writes +-1 sample, especially SIMD
   m_picBufs[PIC_SAO_TEMP].create( chromaFormat, Y(), cs->pcv->maxCUSize, 2, MEMORY_ALIGN_DEF_SIZE );
@@ -337,8 +337,8 @@ void Picture::finalInit( const VPS& _vps, const SPS& sps, const PPS& pps, PicHea
 
   if( cs )
   {
-    CHECK( cs->sps != &sps,  "picture initialization error: sps changed" );
-    CHECK( cs->vps != &_vps, "picture initialization error: vps changed" );
+    CHECK_vvenc(cs->sps != &sps, "picture initialization error: sps changed" );
+    CHECK_vvenc(cs->vps != &_vps, "picture initialization error: vps changed" );
   }
   else
   {

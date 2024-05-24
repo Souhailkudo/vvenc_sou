@@ -168,7 +168,7 @@ void Slice::resetSlicePart()
 
 void Slice::setDefaultClpRng( const SPS& sps )
 {
-  CHECK( sps.bitDepths[CH_L] != sps.bitDepths[CH_C], "Different luma/chroma bitdepths not supported!" );
+  CHECK_vvenc(sps.bitDepths[CH_L] != sps.bitDepths[CH_C], "Different luma/chroma bitdepths not supported!" );
 
   clpRngs.bd = sps.bitDepths[CH_L];
 }
@@ -490,11 +490,11 @@ void Slice::checkCRA(const ReferencePictureList* pRPL0, const ReferencePictureLi
     {
       if (!pRPL0->isLongtermRefPic[i])
       {
-        CHECK(poc + pRPL0->refPicIdentifier[i] < pocCRA, "Invalid state");
+        CHECK_vvenc(poc + pRPL0->refPicIdentifier[i] < pocCRA, "Invalid state");
       }
       else
       {
-        CHECK(xGetLongTermRefPic(rcListPic, pRPL0->refPicIdentifier[i], pRPL0->deltaPocMSBPresent[i])->getPOC() < pocCRA, "Invalid state");
+        CHECK_vvenc(xGetLongTermRefPic(rcListPic, pRPL0->refPicIdentifier[i], pRPL0->deltaPocMSBPresent[i])->getPOC() < pocCRA, "Invalid state");
       }
     }
     numRefPic = pRPL1->numberOfShorttermPictures + pRPL1->numberOfLongtermPictures;
@@ -502,11 +502,11 @@ void Slice::checkCRA(const ReferencePictureList* pRPL0, const ReferencePictureLi
     {
       if (!pRPL1->isLongtermRefPic[i])
       {
-        CHECK(poc + pRPL1->refPicIdentifier[i] < pocCRA, "Invalid state");
+        CHECK_vvenc(poc + pRPL1->refPicIdentifier[i] < pocCRA, "Invalid state");
       }
       else
       {
-        CHECK(xGetLongTermRefPic(rcListPic, pRPL1->refPicIdentifier[i], pRPL1->deltaPocMSBPresent[i])->getPOC() < pocCRA, "Invalid state");
+        CHECK_vvenc(xGetLongTermRefPic(rcListPic, pRPL1->refPicIdentifier[i], pRPL1->deltaPocMSBPresent[i])->getPOC() < pocCRA, "Invalid state");
       }
     }
   }
@@ -611,7 +611,7 @@ void Slice::setDecodingRefreshMarking( int& pocCRA, bool& bRefreshPending, const
 
 void Slice::copySliceInfo( const Slice* slice, bool cpyAlmostAll)
 {
-  CHECK(!slice, "Source is NULL");
+  CHECK_vvenc(!slice, "Source is NULL");
 
   int i, j;
 
@@ -738,7 +738,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
     if (nalUnitType < VVENC_NAL_UNIT_CODED_SLICE_IDR_W_RADL ||
         nalUnitType > VVENC_NAL_UNIT_CODED_SLICE_CRA)
     {
-      CHECK(nalUnitType != VVENC_NAL_UNIT_CODED_SLICE_RASL &&
+      CHECK_vvenc(nalUnitType != VVENC_NAL_UNIT_CODED_SLICE_RASL &&
             nalUnitType != VVENC_NAL_UNIT_CODED_SLICE_RADL, "Invalid NAL unit type");
     }
   }
@@ -746,7 +746,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
   // When a picture is a trailing picture, it shall not be a RADL or RASL picture.
   if(associatedIRAP < poc && !pps->mixedNaluTypesInPic)
   {
-    CHECK(nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_RASL ||
+    CHECK_vvenc(nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_RASL ||
           nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_RADL, "Invalid NAL unit type");
   }
 
@@ -755,7 +755,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
   // an IDR picture.
   if (nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_RASL)
   {
-    CHECK( associatedIRAPType == VVENC_NAL_UNIT_CODED_SLICE_IDR_N_LP   ||
+    CHECK_vvenc(associatedIRAPType == VVENC_NAL_UNIT_CODED_SLICE_IDR_N_LP ||
            associatedIRAPType == VVENC_NAL_UNIT_CODED_SLICE_IDR_W_RADL, "Invalid NAL unit type");
   }
 
@@ -764,7 +764,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
   // with an IDR picture having nal_unit_type equal to IDR_N_LP.
   if (nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_RADL)
   {
-    CHECK (associatedIRAPType == VVENC_NAL_UNIT_CODED_SLICE_IDR_N_LP, "Invalid NAL unit type");
+    CHECK_vvenc (associatedIRAPType == VVENC_NAL_UNIT_CODED_SLICE_IDR_N_LP, "Invalid NAL unit type");
   }
 
   // loop through all pictures in the reference picture buffer
@@ -786,7 +786,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
     {
       if (nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_CRA || nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_IDR_N_LP || nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_IDR_W_RADL)
       {
-        CHECK(pic->poc >= poc, "Any picture, with nuh_layer_id equal to a particular value layerId, that precedes an IRAP picture with nuh_layer_id "
+        CHECK_vvenc(pic->poc >= poc, "Any picture, with nuh_layer_id equal to a particular value layerId, that precedes an IRAP picture with nuh_layer_id "
               "equal to layerId in decoding order shall precede the IRAP picture in output order.");
       }
     }
@@ -795,7 +795,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
     {
       if (poc == picHeader->recoveryPocCnt + prevGDRInSameLayerPOC)
       {
-        CHECK(pic->poc >= poc, "Any picture, with nuh_layer_id equal to a particular value layerId, that precedes a recovery point picture with "
+        CHECK_vvenc(pic->poc >= poc, "Any picture, with nuh_layer_id equal to a particular value layerId, that precedes a recovery point picture with "
               "nuh_layer_id equal to layerId in decoding order shall precede the recovery point picture in output order.");
       }
     }
@@ -807,7 +807,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
       {
         if (slice->nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_RADL)
         {
-          CHECK(pic->poc <= poc, "Any RASL picture associated with a CRA picture shall precede any RADL picture associated with the CRA picture in output order.");
+          CHECK_vvenc(pic->poc <= poc, "Any RASL picture associated with a CRA picture shall precede any RADL picture associated with the CRA picture in output order.");
         }
       }
     }
@@ -824,7 +824,7 @@ void Slice::checkLeadingPictureRestrictions(const PicList& rcListPic) const
             slice->nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_GDR) &&
             pic->layerId == nuhLayerId)
         {
-          CHECK(poc <= slice->poc, "Any RASL picture, with nuh_layer_id equal to a particular value layerId, associated with a CRA picture shall follow, "
+          CHECK_vvenc(poc <= slice->poc, "Any RASL picture, with nuh_layer_id equal to a particular value layerId, associated with a CRA picture shall follow, "
                "in output order, any IRAP or GDR picture with nuh_layer_id equal to layerId that precedes the CRA picture in decoding order.");
         }
       }
@@ -858,7 +858,7 @@ void Slice::applyReferencePictureListBasedMarking(const PicList& rcListPic, cons
       if( pRPL0->isInterLayerRefPic[ i ] )
       {
         // Diagonal inter-layer prediction is not allowed
-        CHECK( pRPL0->refPicIdentifier[i], "ILRP identifier should be 0" );
+        CHECK_vvenc(pRPL0->refPicIdentifier[i], "ILRP identifier should be 0" );
 
         if( pic->poc == poc )
         {
@@ -892,7 +892,7 @@ void Slice::applyReferencePictureListBasedMarking(const PicList& rcListPic, cons
       if( pRPL1->isInterLayerRefPic[i] )
       {
         // Diagonal inter-layer prediction is not allowed
-        CHECK( pRPL1->refPicIdentifier[i], "ILRP identifier should be 0" );
+        CHECK_vvenc(pRPL1->refPicIdentifier[i], "ILRP identifier should be 0" );
 
         if( pic->poc == poc )
         {
@@ -1246,13 +1246,13 @@ void Slice::createExplicitReferencePictureSetFromReference(const PicList& rcList
 //! get tables for weighted prediction
 void  Slice::getWpScaling( RefPicList e, int iRefIdx, WPScalingParam *&wp ) const
 {
- CHECK(e>=NUM_REF_PIC_LIST_01, "Invalid picture reference list");
+ CHECK_vvenc(e >= NUM_REF_PIC_LIST_01, "Invalid picture reference list");
   wp = (WPScalingParam*) weightPredTable[e][iRefIdx];
 }
 
 void PicHeader::getWpScaling(RefPicList e, int iRefIdx, WPScalingParam *&wp) const
 {
-  CHECK(e >= NUM_REF_PIC_LIST_01, "Invalid picture reference list");
+  CHECK_vvenc(e >= NUM_REF_PIC_LIST_01, "Invalid picture reference list");
   wp = (WPScalingParam *) weightPredTable[e][iRefIdx];
 }
 
@@ -1576,8 +1576,8 @@ void ChromaQpMappingTable::derivedChromaQPMappingTables()
 
     for (int j = 0; j <= m_numPtsInCQPTableMinus1[i]; j++)
     {
-      CHECK(qpInVal[j]  < -qpBdOffsetC || qpInVal[j]  > MAX_QP, "qpInVal out of range");
-      CHECK(qpOutVal[j] < -qpBdOffsetC || qpOutVal[j] > MAX_QP, "qpOutVal out of range");
+      CHECK_vvenc(qpInVal[j] < -qpBdOffsetC || qpInVal[j] > MAX_QP, "qpInVal out of range");
+      CHECK_vvenc(qpOutVal[j] < -qpBdOffsetC || qpOutVal[j] > MAX_QP, "qpOutVal out of range");
     }
 
     m_chromaQpMappingTables[i][qpInVal[0] + qpBdOffsetC] = qpOutVal[0];
@@ -1684,7 +1684,7 @@ void PPS::initTiles()
   uint32_t  remainingWidthInCtu  = picWidthInCtu;
   for( colIdx = 0; colIdx < numExpTileCols; colIdx++ )
   {
-    CHECK(tileColWidth[colIdx] > remainingWidthInCtu,    "Tile column width exceeds picture width");
+    CHECK_vvenc(tileColWidth[colIdx] > remainingWidthInCtu, "Tile column width exceeds picture width");
     remainingWidthInCtu -= tileColWidth[colIdx];
   }
 
@@ -1692,7 +1692,7 @@ void PPS::initTiles()
   uint32_t  uniformTileColWidth = tileColWidth[colIdx-1];
   while( remainingWidthInCtu > 0 )
   {
-    CHECK(colIdx >= MAX_TILE_COLS, "Number of tile columns exceeds valid range");
+    CHECK_vvenc(colIdx >= MAX_TILE_COLS, "Number of tile columns exceeds valid range");
     uniformTileColWidth = std::min(remainingWidthInCtu, uniformTileColWidth);
     tileColWidth.push_back( uniformTileColWidth );
     remainingWidthInCtu -= uniformTileColWidth;
@@ -1704,7 +1704,7 @@ void PPS::initTiles()
   uint32_t  remainingHeightInCtu  = picHeightInCtu;
   for( rowIdx = 0; rowIdx < numExpTileRows; rowIdx++ )
   {
-    CHECK(tileRowHeight[rowIdx] > remainingHeightInCtu,     "Tile row height exceeds picture height");
+    CHECK_vvenc(tileRowHeight[rowIdx] > remainingHeightInCtu, "Tile row height exceeds picture height");
     remainingHeightInCtu -= tileRowHeight[rowIdx];
   }
 
@@ -1776,10 +1776,10 @@ void PPS::initRectSliceMap( const SPS* sps )
   //currently only one slice is allowed
   if( sps )
   {
-    CHECK( sps->numSubPics > 1, "SubPic encoding not yet supported" );
+    CHECK_vvenc(sps->numSubPics > 1, "SubPic encoding not yet supported" );
   }
   
-  CHECK( numSlicesInPic > MAX_SLICES, "Number of slices in picture exceeds valid range" );
+  CHECK_vvenc(numSlicesInPic > MAX_SLICES, "Number of slices in picture exceeds valid range" );
   sliceMap.resize( numSlicesInPic );
 
   sliceMap[0].initSliceMap();
@@ -1807,13 +1807,13 @@ void PPS::checkSliceMap()
     sliceList = sliceMap[ i ].ctuAddrInSlice;
     ctuList.insert( ctuList.end(), sliceList.begin(), sliceList.end() );
   }
-  CHECK( ctuList.size() < picSizeInCtu, "Slice map contains too few CTUs");
-  CHECK( ctuList.size() > picSizeInCtu, "Slice map contains too many CTUs");
+  CHECK_vvenc(ctuList.size() < picSizeInCtu, "Slice map contains too few CTUs");
+  CHECK_vvenc(ctuList.size() > picSizeInCtu, "Slice map contains too many CTUs");
   std::sort( ctuList.begin(), ctuList.end() );
   for( i = 1; i < ctuList.size(); i++ )
   {
-    CHECK( ctuList[i] > ctuList[i-1]+1, "CTU missing in slice map");
-    CHECK( ctuList[i] == ctuList[i-1],  "CTU duplicated in slice map");
+    CHECK_vvenc(ctuList[i] > ctuList[i - 1] + 1, "CTU missing in slice map");
+    CHECK_vvenc(ctuList[i] == ctuList[i - 1], "CTU duplicated in slice map");
   }
 }
 

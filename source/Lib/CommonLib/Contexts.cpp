@@ -166,8 +166,8 @@ CtxSet::CtxSet( std::initializer_list<CtxSet> ctxSets )
 
 const std::vector<uint8_t>& ContextSetCfg::getInitTable( unsigned initId )
 {
-  CHECK( initId >= (unsigned)sm_InitTables.size(),
-         "Invalid initId (" << initId << "), only " << sm_InitTables.size() << " tables defined." );
+  CHECK_vvenc(initId >= (unsigned)sm_InitTables.size(),
+              "Invalid initId (" << initId << "), only " << sm_InitTables.size() << " tables defined." );
   return sm_InitTables[initId];
 }
 
@@ -181,8 +181,8 @@ CtxSet ContextSetCfg::addCtxSet( std::initializer_list<std::initializer_list<uin
   {
     const std::initializer_list<uint8_t>& initSet   = *setIter;
     std::vector<uint8_t>&           initTable = sm_InitTables[setId];
-    CHECK( initSet.size() != numValues,
-           "Number of init values do not match for all sets (" << initSet.size() << " != " << numValues << ")." );
+    CHECK_vvenc(initSet.size() != numValues,
+                "Number of init values do not match for all sets (" << initSet.size() << " != " << numValues << ")." );
     initTable.resize( startIdx + numValues );
     std::size_t elemId = startIdx;
     for( auto elemIter = ( *setIter ).begin(); elemIter != ( *setIter ).end(); elemIter++, elemId++ )
@@ -893,11 +893,11 @@ CtxStore::CtxStore( const CtxStore& ctxStore )
 void CtxStore::init( int qp, int initId )
 {
   const std::vector<uint8_t>& initTable = ContextSetCfg::getInitTable( initId );
-  CHECK( m_CtxBuffer.size() != initTable.size(),
-        "Size of init table (" << initTable.size() << ") does not match size of context buffer (" << m_CtxBuffer.size() << ")." );
+  CHECK_vvenc(m_CtxBuffer.size() != initTable.size(),
+              "Size of init table (" << initTable.size() << ") does not match size of context buffer (" << m_CtxBuffer.size() << ")." );
   const std::vector<uint8_t> &rateInitTable = ContextSetCfg::getInitTable(VVENC_NUMBER_OF_SLICE_TYPES);
-  CHECK(m_CtxBuffer.size() != rateInitTable.size(),
-        "Size of rate init table (" << rateInitTable.size() << ") does not match size of context buffer ("
+  CHECK_vvenc(m_CtxBuffer.size() != rateInitTable.size(),
+              "Size of rate init table (" << rateInitTable.size() << ") does not match size of context buffer ("
                                     << m_CtxBuffer.size() << ").");
   int clippedQP = Clip3( 0, MAX_QP, qp );
   for( std::size_t k = 0; k < m_CtxBuffer.size(); k++ )
@@ -909,8 +909,8 @@ void CtxStore::init( int qp, int initId )
 
 void CtxStore::setWinSizes( const std::vector<uint8_t>& log2WindowSizes )
 {
-  CHECK( m_CtxBuffer.size() != log2WindowSizes.size(),
-        "Size of window size table (" << log2WindowSizes.size() << ") does not match size of context buffer (" << m_CtxBuffer.size() << ")." );
+  CHECK_vvenc(m_CtxBuffer.size() != log2WindowSizes.size(),
+              "Size of window size table (" << log2WindowSizes.size() << ") does not match size of context buffer (" << m_CtxBuffer.size() << ")." );
   for( std::size_t k = 0; k < m_CtxBuffer.size(); k++ )
   {
     m_CtxBuffer[k].setLog2WindowSize( log2WindowSizes[k] );
@@ -919,8 +919,8 @@ void CtxStore::setWinSizes( const std::vector<uint8_t>& log2WindowSizes )
 
 void CtxStore::loadPStates( const std::vector<uint16_t>& probStates )
 {
-  CHECK( m_CtxBuffer.size() != probStates.size(),
-        "Size of prob states table (" << probStates.size() << ") does not match size of context buffer (" << m_CtxBuffer.size() << ")." );
+  CHECK_vvenc(m_CtxBuffer.size() != probStates.size(),
+              "Size of prob states table (" << probStates.size() << ") does not match size of context buffer (" << m_CtxBuffer.size() << ")." );
   for( std::size_t k = 0; k < m_CtxBuffer.size(); k++ )
   {
     m_CtxBuffer[k].setState( probStates[k] );

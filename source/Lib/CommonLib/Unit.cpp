@@ -520,7 +520,7 @@ void TransformUnit::init(TCoeffSig** coeffs)
 
 TransformUnit& TransformUnit::operator=( const TransformUnit& other )
 {
-  CHECK( chromaFormat != other.chromaFormat, "Incompatible formats" );
+  CHECK_vvenc(chromaFormat != other.chromaFormat, "Incompatible formats" );
 
   unsigned numBlocks = getNumberValidTBlocks(*cs->pcv);
   for( unsigned i = 0; i < numBlocks; i++ )
@@ -545,7 +545,7 @@ TransformUnit& TransformUnit::operator=( const TransformUnit& other )
 
 void TransformUnit::copyComponentFrom( const TransformUnit& other, const ComponentID i )
 {
-  CHECK( chromaFormat != other.chromaFormat, "Incompatible formats" );
+  CHECK_vvenc(chromaFormat != other.chromaFormat, "Incompatible formats" );
   CHECKD( blocks[i].area() != other.blocks[i].area(), "Transformation units cover different areas" );
 
   bool cpyRsi = other.cbf[i] || ( i && other.jointCbCr && blocks.size() > 1 && ( TU::getCbf( other, COMP_Cb ) || TU::getCbf( other, COMP_Cr ) ) );

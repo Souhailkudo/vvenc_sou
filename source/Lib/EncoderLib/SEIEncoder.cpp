@@ -69,7 +69,7 @@ void SEIEncoder::init( const VVEncCfg& encCfg, const GOPCfg* gopCfg, EncHRD& enc
 
 void SEIEncoder::initBufferingPeriodSEI( SEIBufferingPeriod& bpSei, bool noLeadingPictures)
 {
-  CHECK(!(m_isInitialized), "bufferingPeriodSEI already initialized");
+  CHECK_vvenc(!(m_isInitialized), "bufferingPeriodSEI already initialized");
 
   uint32_t uiInitialCpbRemovalDelay = (90000/2);                      // 0.5 sec
   bpSei.bpNalCpbParamsPresent = true;
@@ -115,7 +115,7 @@ void SEIEncoder::initBufferingPeriodSEI( SEIBufferingPeriod& bpSei, bool noLeadi
   bpSei.concatenationFlag = 0;
   //since the temporal layer HRDParameters is not ready, we assumed it is fixed
   bpSei.auCpbRemovalDelayDelta = 1;
-  CHECK( m_pcEncCfg->m_IntraPeriod % m_pcEncCfg->m_GOPSize != 0, "broken for aip" );
+  CHECK_vvenc(m_pcEncCfg->m_IntraPeriod % m_pcEncCfg->m_GOPSize != 0, "broken for aip" );
   bool bpDeltasGOPStructure = m_pcEncCfg->m_GOPSize == 8 || m_pcEncCfg->m_GOPSize == 16; //assume GOPs specified as in CTC
   bpSei.cpbRemovalDelayDeltasPresent = bpDeltasGOPStructure;
   if (bpSei.cpbRemovalDelayDeltasPresent)
@@ -201,7 +201,7 @@ void SEIEncoder::initBufferingPeriodSEI( SEIBufferingPeriod& bpSei, bool noLeadi
 //! calculate hashes for entire reconstructed picture
 void SEIEncoder::initDecodedPictureHashSEI( SEIDecodedPictureHash& dphSei, const CPelUnitBuf& pic, std::string &rHashString, const BitDepths &bitDepths)
 {
-  CHECK(!(m_isInitialized), "Unspecified error");
+  CHECK_vvenc(!(m_isInitialized), "Unspecified error");
 
   dphSei.method         = m_pcEncCfg->m_decodedPictureHashSEIType;
   dphSei.singleCompFlag = m_pcEncCfg->m_internChromaFormat == 0;
@@ -258,11 +258,11 @@ void SEIEncoder::initPictureTimingSEI( SEIMessages& seiMessages, SEIMessages& ne
     }
     const uint32_t cpbRemovalDelayLegth = m_pcEncHRD->bufferingPeriodSEI.cpbRemovalDelayLength;
     ptSei->auCpbRemovalDelay[maxNumSubLayers-1] = std::min<int>(std::max<int>(1, m_totalCoded[maxNumSubLayers-1] - m_lastBPSEI[maxNumSubLayers-1]), (1<<cpbRemovalDelayLegth)); // Syntax element signalled as minus, hence the .
-    CHECK( (m_totalCoded[maxNumSubLayers-1] - m_lastBPSEI[maxNumSubLayers-1]) > (1<<cpbRemovalDelayLegth), " cpbRemovalDelayLegth too small for m_auCpbRemovalDelay[pt_max_sub_layers_minus1] at picture timing SEI " );
+    CHECK_vvenc((m_totalCoded[maxNumSubLayers - 1] - m_lastBPSEI[maxNumSubLayers - 1]) > (1 << cpbRemovalDelayLegth), " cpbRemovalDelayLegth too small for m_auCpbRemovalDelay[pt_max_sub_layers_minus1] at picture timing SEI " );
     const uint32_t temporalId = slice->TLayer;
     for( int i = temporalId ; i < maxNumSubLayers - 1 ; i ++ )
     {
-      CHECK( m_pcEncCfg->m_IntraPeriod % m_pcEncCfg->m_GOPSize != 0, "broken for aip" );
+      CHECK_vvenc(m_pcEncCfg->m_IntraPeriod % m_pcEncCfg->m_GOPSize != 0, "broken for aip" );
       int indexWithinGOP = (m_totalCoded[maxNumSubLayers - 1] - m_lastBPSEI[maxNumSubLayers - 1]) % m_pcEncCfg->m_GOPSize;
       ptSei->ptSubLayerDelaysPresent[i] = true;
       if( ((m_rapWithLeading == true) && (indexWithinGOP == 0)) || (m_totalCoded[maxNumSubLayers - 1] == 0) || bpPresentInAU || (slice->poc + m_pcEncCfg->m_GOPSize) > m_pcEncCfg->m_framesToBeEncoded )
@@ -422,7 +422,7 @@ void SEIEncoder::initPictureTimingSEI( SEIMessages& seiMessages, SEIMessages& ne
       {
         int scaledDistToBuffPeriod = (m_totalCoded[i] - m_lastBPSEI[i]) * (1<<(maxNumSubLayers - 1 - i));
         ptSei->auCpbRemovalDelay[i] = std::min<int>(std::max<int>(1, scaledDistToBuffPeriod), (1<<cpbRemovalDelayLegth)); // Syntax element signalled as minus, hence the .
-        CHECK( scaledDistToBuffPeriod > (1<<cpbRemovalDelayLegth), " cpbRemovalDelayLegth too small for m_auCpbRemovalDelay[i] at picture timing SEI " );
+        CHECK_vvenc(scaledDistToBuffPeriod > (1 << cpbRemovalDelayLegth), " cpbRemovalDelayLegth too small for m_auCpbRemovalDelay[i] at picture timing SEI " );
       }
     }
     ptSei->picDpbOutputDelay = slice->sps->numReorderPics[slice->sps->maxTLayers-1] + slice->poc - m_totalCoded[maxNumSubLayers-1];
@@ -494,16 +494,16 @@ void SEIEncoder::initPictureTimingSEI( SEIMessages& seiMessages, SEIMessages& ne
 
 void SEIEncoder::initSEIAlternativeTransferCharacteristics(SEIAlternativeTransferCharacteristics *seiAltTransCharacteristics)
 {
-  CHECK(!(m_isInitialized), "Unspecified error");
-  CHECK(!(seiAltTransCharacteristics!=NULL), "Unspecified error");
+  CHECK_vvenc(!(m_isInitialized), "Unspecified error");
+  CHECK_vvenc(!(seiAltTransCharacteristics != NULL), "Unspecified error");
   //  Set SEI message parameters read from command line options
   seiAltTransCharacteristics->preferredTransferCharacteristics = m_pcEncCfg->m_preferredTransferCharacteristics;
 }
 
 void SEIEncoder::initSEIMasteringDisplayColourVolume(SEIMasteringDisplayColourVolume *seiMDCV)
 {
-  CHECK(!(m_isInitialized), "Unspecified error");
-  CHECK(!(seiMDCV != NULL), "Unspecified error");
+  CHECK_vvenc(!(m_isInitialized), "Unspecified error");
+  CHECK_vvenc(!(seiMDCV != NULL), "Unspecified error");
 
   //  Set SEI message parameters read from command line options
   seiMDCV->values.primaries[0][0] = m_pcEncCfg->m_masteringDisplay[0];
@@ -524,8 +524,8 @@ void SEIEncoder::initSEIMasteringDisplayColourVolume(SEIMasteringDisplayColourVo
 
 void SEIEncoder::initSEIContentLightLevel(SEIContentLightLevelInfo *seiCLL)
 {
-  CHECK(!(m_isInitialized), "Unspecified error");
-  CHECK(!(seiCLL != NULL), "Unspecified error");
+  CHECK_vvenc(!(m_isInitialized), "Unspecified error");
+  CHECK_vvenc(!(seiCLL != NULL), "Unspecified error");
 
   //  Set SEI message parameters read from command line options
   seiCLL->maxContentLightLevel    = m_pcEncCfg->m_contentLightLevel[0];

@@ -543,7 +543,7 @@ void EncModeCtrl::initCTUEncoding( const Slice &slice, int tileIdx )
   CacheBlkInfoCtrl::init( slice );
   BestEncInfoCache::init( slice );
 
-  CHECK( !m_ComprCUCtxList.empty(), "Mode list is not empty at the beginning of a CTU" );
+  CHECK_vvenc(!m_ComprCUCtxList.empty(), "Mode list is not empty at the beginning of a CTU" );
 
   if( m_pcEncCfg->m_fastQtBtEnc )
   {
@@ -677,7 +677,7 @@ bool EncModeCtrl::trySplit( const EncTestMode& encTestmode, const CodingStructur
     return false;
   }
 
-  CHECK( ! isModeSplit( encTestmode ), "wrong method" );
+  CHECK_vvenc(! isModeSplit(encTestmode ), "wrong method" );
 
   //////////////////////////////////////////////////////////////////////////
   // skip-history rule - don't split further if at least for three past levels
@@ -922,7 +922,7 @@ bool EncModeCtrl::trySplit( const EncTestMode& encTestmode, const CodingStructur
 
 bool EncModeCtrl::tryMode( const EncTestMode& encTestmode, const CodingStructure &cs, Partitioner& partitioner )
 {
-  CHECK( isModeSplit( encTestmode ), "wrong method");
+  CHECK_vvenc(isModeSplit(encTestmode ), "wrong method");
 
   ComprCUCtx& cuECtx = m_ComprCUCtxList.back();
 
@@ -1022,7 +1022,7 @@ bool EncModeCtrl::tryMode( const EncTestMode& encTestmode, const CodingStructure
   else if( isModeInter( encTestmode ) )
   {
     // INTER MODES (ME + MERGE/SKIP)
-    CHECK( slice.isIntra(), "Inter-mode should not be in the I-Slice mode list!" );
+    CHECK_vvenc(slice.isIntra(), "Inter-mode should not be in the I-Slice mode list!" );
 
     // --- Check if we can quit current mode using SAVE/LOAD coding history
 

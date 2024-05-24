@@ -474,7 +474,7 @@ void SampleAdaptiveOffset::invertQuantOffsets(ComponentID compIdx, int typeIdc, 
     {
       dstOffsets[i] = codedOffset[i] *(1<<m_offsetStepLog2[compIdx]);
     }
-    CHECK(dstOffsets[SAO_CLASS_EO_PLAIN] != 0, "EO offset is not '0'"); //keep EO plain offset as zero
+    CHECK_vvenc(dstOffsets[SAO_CLASS_EO_PLAIN] != 0, "EO offset is not '0'"); //keep EO plain offset as zero
   }
 
 }
@@ -559,7 +559,7 @@ void SampleAdaptiveOffset::reconstructBlkSAOParam(SAOBlkParam& recParam, SAOBlkP
     case SAO_MODE_MERGE:
       {
         SAOBlkParam* mergeTarget = mergeList[offsetParam.typeIdc];
-        CHECK(mergeTarget == NULL, "Merge target does not exist");
+        CHECK_vvenc(mergeTarget == NULL, "Merge target does not exist");
 
         offsetParam = (*mergeTarget)[component];
       }
@@ -649,7 +649,7 @@ void SampleAdaptiveOffset::offsetCTU( const UnitArea& area, const CPelUnitBuf& s
 
 void SampleAdaptiveOffset::SAOProcess( CodingStructure& cs, SAOBlkParam* saoBlkParams )
 {
-  CHECK(!saoBlkParams, "No parameters present");
+  CHECK_vvenc(!saoBlkParams, "No parameters present");
 
   xReconstructBlkSAOParams(cs, saoBlkParams);
 

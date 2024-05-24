@@ -328,7 +328,7 @@ void TrQuant::invTransformNxN( TransformUnit& tu, const ComponentID compID, PelB
   const uint32_t uiWidth  = area.width;
   const uint32_t uiHeight = area.height;
 
-  CHECK( uiWidth > tu.cs->sps->getMaxTbSize() || uiHeight > tu.cs->sps->getMaxTbSize(), "Maximal allowed transformation size exceeded!" );
+  CHECK_vvenc(uiWidth > tu.cs->sps->getMaxTbSize() || uiHeight > tu.cs->sps->getMaxTbSize(), "Maximal allowed transformation size exceeded!" );
 
   {
     CoeffBuf tempCoeff = CoeffBuf( m_plTempCoeff, area );
@@ -356,21 +356,21 @@ void TrQuant::invTransformNxN( TransformUnit& tu, const ComponentID compID, PelB
 
 std::pair<int64_t,int64_t> TrQuant::fwdTransformICT( const TransformUnit& tu, const PelBuf& resCb, const PelBuf& resCr, PelBuf& resC1, PelBuf& resC2, int jointCbCr )
 {
-  CHECK( Size(resCb) != Size(resCr), "resCb and resCr have different sizes" );
-  CHECK( Size(resCb) != Size(resC1), "resCb and resC1 have different sizes" );
-  CHECK( Size(resCb) != Size(resC2), "resCb and resC2 have different sizes" );
+  CHECK_vvenc(Size(resCb) != Size(resCr), "resCb and resCr have different sizes" );
+  CHECK_vvenc(Size(resCb) != Size(resC1), "resCb and resC1 have different sizes" );
+  CHECK_vvenc(Size(resCb) != Size(resC2), "resCb and resC2 have different sizes" );
   return (*m_fwdICT[ TU::getICTMode(tu, jointCbCr) ])( resCb, resCr, resC1, resC2 );
 }
 
 void TrQuant::invTransformICT( const TransformUnit& tu, PelBuf& resCb, PelBuf& resCr )
 {
-  CHECK( Size(resCb) != Size(resCr), "resCb and resCr have different sizes" );
+  CHECK_vvenc(Size(resCb) != Size(resCr), "resCb and resCr have different sizes" );
   (*m_invICT[ TU::getICTMode(tu) ])( resCb, resCr );
 }
 
 std::vector<int> TrQuant::selectICTCandidates( const TransformUnit& tu, CompStorage* resCb, CompStorage* resCr )
 {
-  CHECK( !resCb[0].valid() || !resCr[0].valid(), "standard components are not valid" );
+  CHECK_vvenc(!resCb[0].valid() || !resCr[0].valid(), "standard components are not valid" );
 
   if( !CU::isIntra( *tu.cu ) )
   {
@@ -550,21 +550,21 @@ void TrQuant::xT( const TransformUnit& tu, const ComponentID compID, const CPelB
   {
     const int shift_1st = ((Log2(width )) + bitDepth + TRANSFORM_MATRIX_SHIFT) - maxLog2TrDynamicRange;
     const int shift_2nd =  (Log2(height))            + TRANSFORM_MATRIX_SHIFT;
-    CHECK( shift_1st < 0, "Negative shift" );
-    CHECK( shift_2nd < 0, "Negative shift" );
+    CHECK_vvenc(shift_1st < 0, "Negative shift" );
+    CHECK_vvenc(shift_2nd < 0, "Negative shift" );
     fastFwdTrans[trTypeHor][transformWidthIndex](block, tmp, shift_1st, height, 0, skipWidth);
     fastFwdTrans[trTypeVer][transformHeightIndex](tmp, dstCoeff.buf, shift_2nd, width, skipWidth, skipHeight);
   }
   else if (height == 1)   // 1-D horizontal transform
   {
     const int shift = ((Log2(width )) + bitDepth + TRANSFORM_MATRIX_SHIFT) - maxLog2TrDynamicRange;
-    CHECK( shift < 0, "Negative shift" );
+    CHECK_vvenc(shift < 0, "Negative shift" );
     fastFwdTrans[trTypeHor][transformWidthIndex](block, dstCoeff.buf, shift, 1, 0, skipWidth);
   }
   else   // if (iWidth == 1) //1-D vertical transform
   {
     int shift = ((floorLog2(height)) + bitDepth + TRANSFORM_MATRIX_SHIFT) - maxLog2TrDynamicRange;
-    CHECK(shift < 0, "Negative shift");
+    CHECK_vvenc(shift < 0, "Negative shift");
     CHECKD((transformHeightIndex < 0), "There is a problem with the height.");
     fastFwdTrans[trTypeVer][transformHeightIndex](block, dstCoeff.buf, shift, 1, 0, skipHeight);
   }
@@ -614,23 +614,23 @@ void TrQuant::xIT( const TransformUnit& tu, const ComponentID compID, const CCoe
   {
     const int shift_1st =   TRANSFORM_MATRIX_SHIFT + 1; // 1 has been added to shift_1st at the expense of shift_2nd
     const int shift_2nd = ( TRANSFORM_MATRIX_SHIFT + maxLog2TrDynamicRange - 1 ) - bitDepth;
-    CHECK( shift_1st < 0, "Negative shift" );
-    CHECK( shift_2nd < 0, "Negative shift" );
+    CHECK_vvenc(shift_1st < 0, "Negative shift" );
+    CHECK_vvenc(shift_2nd < 0, "Negative shift" );
     fastInvTrans[trTypeVer][transformHeightIndex](pCoeff.buf, tmp, shift_1st, width, skipWidth, skipHeight, clipMinimum, clipMaximum);
     fastInvTrans[trTypeHor][transformWidthIndex](tmp, block, shift_2nd, height, 0, skipWidth, clipMinimum, clipMaximum);
   }
   else if (width == 1)   // 1-D vertical transform
   {
     int shift = (TRANSFORM_MATRIX_SHIFT + maxLog2TrDynamicRange - 1) - bitDepth;
-    CHECK(shift < 0, "Negative shift");
-    CHECK((transformHeightIndex < 0), "There is a problem with the height.");
+    CHECK_vvenc(shift < 0, "Negative shift");
+    CHECK_vvenc((transformHeightIndex < 0), "There is a problem with the height.");
     fastInvTrans[trTypeVer][transformHeightIndex](pCoeff.buf, block, shift + 1, 1, 0, skipHeight, clipMinimum, clipMaximum);
   }
   else   // if(iHeight == 1) //1-D horizontal transform
   {
     const int shift = (TRANSFORM_MATRIX_SHIFT + maxLog2TrDynamicRange - 1) - bitDepth;
-    CHECK(shift < 0, "Negative shift");
-    CHECK((transformWidthIndex < 0), "There is a problem with the width.");
+    CHECK_vvenc(shift < 0, "Negative shift");
+    CHECK_vvenc((transformWidthIndex < 0), "There is a problem with the width.");
     fastInvTrans[trTypeHor][transformWidthIndex](pCoeff.buf, block, shift + 1, 1, 0, skipWidth, clipMinimum, clipMaximum);
   }
 
@@ -715,7 +715,7 @@ void TrQuant::transformNxN(TransformUnit &tu, const ComponentID compID, const Qp
   }
 
   uiAbsSum = 0;
-  CHECK( cs.sps->getMaxTbSize() < uiWidth, "Unsupported transformation size" );
+  CHECK_vvenc(cs.sps->getMaxTbSize() < uiWidth, "Unsupported transformation size" );
 
   CoeffBuf tempCoeff(loadTr ? m_mtsCoeffs[tu.mtsIdx[compID]] : m_plTempCoeff, rect);
   if (!loadTr)
@@ -753,7 +753,7 @@ void TrQuant::checktransformsNxN( TransformUnit &tu, std::vector<TrMode> *trMode
 
   const CPelBuf resiBuf = cs.getResiBuf(rect);
 
-  CHECK(cs.sps->getMaxTbSize() < width, "Unsupported transformation size");
+  CHECK_vvenc(cs.sps->getMaxTbSize() < width, "Unsupported transformation size");
   int                           pos = 0;
   std::vector<TrCost>           trCosts;
   std::vector<TrMode>::iterator it      = trModes->begin();
@@ -868,7 +868,7 @@ void TrQuant::xInvLfnst(const TransformUnit &tu, const ComponentID compID)
     {
       intraMode = PLANAR_IDX;
     }
-    CHECK(intraMode >= NUM_INTRA_MODE - 1, "Invalid intra mode");
+    CHECK_vvenc(intraMode >= NUM_INTRA_MODE - 1, "Invalid intra mode");
 
     if (lfnstIdx < 3)
     {
@@ -972,7 +972,7 @@ void TrQuant::xFwdLfnst(const TransformUnit &tu, const ComponentID compID, const
     {
       intraMode = PLANAR_IDX;
     }
-    CHECK(intraMode >= NUM_INTRA_MODE - 1, "Invalid intra mode");
+    CHECK_vvenc(intraMode >= NUM_INTRA_MODE - 1, "Invalid intra mode");
 
     if (lfnstIdx < 3)
     {

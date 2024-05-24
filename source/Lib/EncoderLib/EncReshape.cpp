@@ -1167,7 +1167,7 @@ void EncReshape::constructReshaperLMCS()
 
   int sumBins = 0;
   for (i = 0; i < PIC_CODE_CW_BINS; i++) { sumBins += m_binCW[i]; }
-  CHECK(sumBins >= m_reshapeLUTSize, "SDR CW assignment is wrong!!");
+  CHECK_vvenc(sumBins >= m_reshapeLUTSize, "SDR CW assignment is wrong!!");
   for (int i = 0; i < PIC_CODE_CW_BINS; i++)
   {
     m_reshapePivot[i + 1] = m_reshapePivot[i] + m_binCW[i];

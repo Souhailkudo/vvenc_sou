@@ -91,7 +91,7 @@ QuantRDOQ::QuantRDOQ( const Quant* other, bool useScalingLists ) : Quant( other,
 {
 
   const QuantRDOQ *rdoq = dynamic_cast<const QuantRDOQ*>( other );
-  CHECK( other && !rdoq, "The RDOQ cast must be successfull!" );
+  CHECK_vvenc(other && !rdoq, "The RDOQ cast must be successfull!" );
   xInitScalingList( rdoq );
 }
 
@@ -531,11 +531,11 @@ void QuantRDOQ::xRateDistOptQuant(TransformUnit& tu, const ComponentID compID, c
   const uint32_t uiLog2BlockHeight                 = Log2(uiHeight);
   const uint32_t uiMaxNumCoeff                     = rect.area();
 
-  CHECK(compID >= MAX_NUM_TBLOCKS, "Invalid component ID");
+  CHECK_vvenc(compID >= MAX_NUM_TBLOCKS, "Invalid component ID");
 
   int scalingListType = getScalingListType(tu.cu->predMode, compID);
 
-  CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+  CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
 
   const TCoeff    *plSrcCoeff = pSrc.buf;
         TCoeffSig *piDstCoeff = tu.getCoeffs(compID).buf;
@@ -1135,10 +1135,10 @@ void QuantRDOQ::rateDistOptQuantTS( TransformUnit& tu, const ComponentID compID,
 
   const uint32_t maxNumCoeff                        = rect.area();
 
-  CHECK( compID >= MAX_NUM_TBLOCKS, "Invalid component ID" );
+  CHECK_vvenc(compID >= MAX_NUM_TBLOCKS, "Invalid component ID" );
 
   int scalingListType = getScalingListType( tu.cu->predMode, compID );
-  CHECK( scalingListType >= SCALING_LIST_NUM, "Invalid scaling list" );
+  CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list" );
 
   const TCoeff    *srcCoeff = coeffs.buf;
         TCoeffSig *dstCoeff = tu.getCoeffs( compID ).buf;
@@ -1349,10 +1349,10 @@ void QuantRDOQ::forwardRDPCM( TransformUnit& tu, const ComponentID compID, const
 
   const uint32_t maxNumCoeff = rect.area();
 
-  CHECK(compID >= MAX_NUM_TBLOCKS, "Invalid component ID");
+  CHECK_vvenc(compID >= MAX_NUM_TBLOCKS, "Invalid component ID");
 
   int scalingListType = getScalingListType(tu.cu->predMode, compID);
-  CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+  CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
 
   const TCoeff    *srcCoeff = coeffs.buf;
         TCoeffSig *dstCoeff = tu.getCoeffs(compID).buf;

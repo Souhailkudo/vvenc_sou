@@ -120,7 +120,7 @@ double filterAndCalculateAverageActivity (const Pel* pSrc, const int iSrcStride,
   {
     const int i2M1Stride = iSM1Stride * 2;
 
-    CHECK (pSM1 == nullptr || iSM1Stride <= 0 || iSM1Stride < width, "Pel buffer pointer pSM1 must not be null!");
+    CHECK_vvenc (pSM1 == nullptr || iSM1Stride <= 0 || iSM1Stride < width, "Pel buffer pointer pSM1 must not be null!");
 
     pSrc += iSrcStride;
     pSM1 += i2M1Stride;
@@ -132,7 +132,7 @@ double filterAndCalculateAverageActivity (const Pel* pSrc, const int iSrcStride,
     {
       const int i2M2Stride = iSM2Stride * 2;
 
-      CHECK (pSM2 == nullptr || iSM2Stride <= 0 || iSM2Stride < width, "Pel buffer pointer pSM2 must not be null!");
+      CHECK_vvenc (pSM2 == nullptr || iSM2Stride <= 0 || iSM2Stride < width, "Pel buffer pointer pSM2 must not be null!");
 
       pSM2 += i2M2Stride;
       taAct = g_pelBufOP.AvgHighPassWithDownsamplingDiff2nd (width, height, pSrc, pSM1, pSM2, iSrcStride, iSM1Stride, iSM2Stride);
@@ -142,7 +142,7 @@ double filterAndCalculateAverageActivity (const Pel* pSrc, const int iSrcStride,
   }
   else // HD high-pass without downsampling
   {
-    CHECK (pSM1 == nullptr || iSM1Stride <= 0 || iSM1Stride < width, "Pel buffer pointer pSM1 must not be null!");
+    CHECK_vvenc (pSM1 == nullptr || iSM1Stride <= 0 || iSM1Stride < width, "Pel buffer pointer pSM1 must not be null!");
 
     pSM1 += iSM1Stride;
     if (frameRate <= 31) // 1st-order delta
@@ -151,7 +151,7 @@ double filterAndCalculateAverageActivity (const Pel* pSrc, const int iSrcStride,
     }
     else // 2nd-order delta (diff of diffs)
     {
-      CHECK (pSM2 == nullptr || iSM2Stride <= 0 || iSM2Stride < width, "Pel buffer pointer pSM2 must not be null!");
+      CHECK_vvenc (pSM2 == nullptr || iSM2Stride <= 0 || iSM2Stride < width, "Pel buffer pointer pSM2 must not be null!");
 
       pSM2 += iSM2Stride;
       taAct = g_pelBufOP.HDHighPass2 (width, height, pSrc, pSM1, pSM2, iSrcStride, iSM1Stride, iSM2Stride);
@@ -211,7 +211,7 @@ static int getGlaringColorQPOffset (Picture* const pic, const int ctuAddr, const
 
     if (chrValue > avgCompValue) chrValue = avgCompValue; // minimum of the DC offsets
   }
-  CHECK (chrValue < 0, "mean chroma value cannot be negative!");
+  CHECK_vvenc (chrValue < 0, "mean chroma value cannot be negative!");
 
   chrValue = (int) avgLumaValue - chrValue;
 
@@ -241,7 +241,7 @@ static int getGlaringColorQPOffsetSubCtu (Picture* const pic, const CompArea& lu
 
     if (chrValue > avgCompValue) chrValue = avgCompValue; // minimum of the DC offsets
   }
-  CHECK (chrValue < 0, "mean chroma value cannot be negative!");
+  CHECK_vvenc (chrValue < 0, "mean chroma value cannot be negative!");
 
   chrValue = (int) avgLumaValue - chrValue;
 
@@ -254,7 +254,7 @@ static void updateMinNoiseLevelsPic (uint8_t* const minNoiseLevels, const int bi
 {
   const unsigned avgIndex = avgValue >> (bitDepth - 3); // one of 8 mean level regions
 
-  CHECK (avgIndex >= QPA_MAX_NOISE_LEVELS, "array index out of bounds");
+  CHECK_vvenc (avgIndex >= QPA_MAX_NOISE_LEVELS, "array index out of bounds");
 
   if (noise < (unsigned) minNoiseLevels[avgIndex])
   {
@@ -269,7 +269,7 @@ static void clipQPValToEstimatedMinimStats (const uint8_t* minNoiseLevels, const
   const unsigned x = (1 << 3) - 1;
   const int32_t dQPOffset = -15;
 
-  CHECK (avgIndex >= QPA_MAX_NOISE_LEVELS, "array index out of bounds");
+  CHECK_vvenc (avgIndex >= QPA_MAX_NOISE_LEVELS, "array index out of bounds");
 
   int i = minNoiseLevels[avgIndex];
 

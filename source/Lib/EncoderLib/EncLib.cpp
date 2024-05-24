@@ -178,7 +178,7 @@ void EncLib::uninitEncoderLib()
 
 void EncLib::initPass( int pass, const char* statsFName )
 {
-  CHECK( m_passInitialized != pass && m_passInitialized + 1 != pass, "initialization of passes only in successive order possible" );
+  CHECK_vvenc(m_passInitialized != pass && m_passInitialized + 1 != pass, "initialization of passes only in successive order possible" );
 
   if( m_rateCtrl == nullptr )
   {
@@ -372,7 +372,7 @@ void EncLib::encodePicture( bool flush, const vvencYUVBuffer* yuvInBuf, AccessUn
 {
   PROFILER_ACCUM_AND_START_NEW_SET( 1, g_timeProfiler, P_TOP_LEVEL );
 
-  CHECK( yuvInBuf == nullptr && ! flush, "no input picture given" );
+  CHECK_vvenc(yuvInBuf == nullptr && ! flush, "no input picture given" );
 
   // clear output access unit
   au.clearAu();
@@ -501,7 +501,7 @@ PicShared* EncLib::xGetFreePicShared()
     picShared->create( m_encCfg.m_framesToBeEncoded, m_encCfg.m_internChromaFormat, Size( m_encCfg.m_PadSourceWidth, m_encCfg.m_PadSourceHeight ), m_encCfg.m_vvencMCTF.MCTF || m_encCfg.m_usePerceptQPA );
     m_picSharedList.push_back( picShared );
   }
-  CHECK( picShared == nullptr, "out of memory" );
+  CHECK_vvenc(picShared == nullptr, "out of memory" );
 
   return picShared;
 }

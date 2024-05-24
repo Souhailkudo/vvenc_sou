@@ -440,13 +440,13 @@ void RateCtrl::openStatsFile(const std::string& name)
   if( rcIsFinalPass )
   {
     m_rcStatsFHandle.open( name, std::ios::in );
-    CHECK( m_rcStatsFHandle.fail(), "unable to open rate control statistics file for reading" );
+    CHECK_vvenc(m_rcStatsFHandle.fail(), "unable to open rate control statistics file for reading" );
     readStatsHeader();
   }
   else
   {
     m_rcStatsFHandle.open( name, std::ios::trunc | std::ios::out );
-    CHECK( m_rcStatsFHandle.fail(), "unable to open rate control statistics file for writing" );
+    CHECK_vvenc(m_rcStatsFHandle.fail(), "unable to open rate control statistics file for writing" );
     writeStatsHeader();
   }
 }
@@ -517,7 +517,7 @@ void RateCtrl::storeStatsData( const TRCPassStats& statsData )
 
   if( m_rcStatsFHandle.is_open() )
   {
-    CHECK( ! m_rcStatsFHandle.good(), "unable to write to rate control statistics file" );
+    CHECK_vvenc(! m_rcStatsFHandle.good(), "unable to write to rate control statistics file" );
     if( m_listRCIntraPQPAStats.size() > m_pqpaStatsWritten )
     {
       std::vector<uint8_t> pqpaTemp;
@@ -566,7 +566,7 @@ void RateCtrl::storeStatsData( const TRCPassStats& statsData )
 #ifdef VVENC_ENABLE_THIRDPARTY_JSON
 void RateCtrl::readStatsFile()
 {
-  CHECK( ! m_rcStatsFHandle.good(), "unable to read from rate control statistics file" );
+  CHECK_vvenc(! m_rcStatsFHandle.good(), "unable to read from rate control statistics file" );
 
   uint8_t minNoiseLevels[ QPA_MAX_NOISE_LEVELS ];
   std::fill_n( minNoiseLevels, QPA_MAX_NOISE_LEVELS, 255u );
@@ -607,7 +607,7 @@ void RateCtrl::readStatsFile()
                                                     ) );
     if( data.find( "pqpaStats" ) != data.end() )
     {
-      CHECK( ! data[ "pqpaStats" ].is_array(), "pqpa array data in rate control statistics file not recognized" );
+      CHECK_vvenc(! data[ "pqpaStats" ].is_array(), "pqpa array data in rate control statistics file not recognized" );
       std::vector<uint8_t> pqpaTemp = data[ "pqpaStats" ];
       for( auto el : pqpaTemp )
       {
@@ -624,16 +624,16 @@ void RateCtrl::processFirstPassData( const bool flush, const int poc /*= -1*/ )
   if( m_pcEncCfg->m_RCNumPasses > 1 )
   {
     // two pass rc
-    CHECK( m_pcEncCfg->m_LookAhead, "two pass rc does not support look-ahead mode" );
+    CHECK_vvenc(m_pcEncCfg->m_LookAhead, "two pass rc does not support look-ahead mode" );
 
     xProcessFirstPassData( flush, poc );
   }
   else
   {
     // single pass rc
-    CHECK( !m_pcEncCfg->m_LookAhead,     "single pass rc should be only used in look-ahead mode" );
-    CHECK( m_firstPassCache.size() == 0, "no data available from the first pass" );
-    CHECK( poc < 0,                      "no valid poc given" );
+    CHECK_vvenc(!m_pcEncCfg->m_LookAhead, "single pass rc should be only used in look-ahead mode" );
+    CHECK_vvenc(m_firstPassCache.size() == 0, "no data available from the first pass" );
+    CHECK_vvenc(poc < 0, "no valid poc given" );
 
     // fetch RC data for the next look-ahead chunk
     // the next look-ahead chunk starts with a given POC, so find a pic for a given POC in cache
@@ -669,7 +669,7 @@ void RateCtrl::processFirstPassData( const bool flush, const int poc /*= -1*/ )
 
 void RateCtrl::xProcessFirstPassData( const bool flush, const int poc )
 {
-  CHECK( m_listRCFirstPassStats.size() == 0, "No data available from the first pass!" );
+  CHECK_vvenc(m_listRCFirstPassStats.size() == 0, "No data available from the first pass!" );
 
   m_listRCFirstPassStats.sort( []( const TRCPassStats& a, const TRCPassStats& b ) { return a.poc < b.poc; } );
 
@@ -818,7 +818,7 @@ void RateCtrl::processGops()
       vecIdx += 1;
       gopNum  = it->gopNum;
     }
-    CHECK( vecIdx >= (int)gopBits.size(), "array idx out of bounds" );
+    CHECK_vvenc(vecIdx >= (int)gopBits.size(), "array idx out of bounds" );
     it->targetBits = std::max (0, int (0.5 + it->numBits * (it->tempLayer + qpOffset < 6 ? rp[it->tempLayer + qpOffset] : ratio)));
     gopBits[vecIdx] += (uint32_t) it->targetBits; // similar to g in VCIP paper
     tgtBits[vecIdx] += float (it->numBits * ratio);
@@ -836,7 +836,7 @@ void RateCtrl::processGops()
       vecIdx += 1;
       gopNum  = it->gopNum;
     }
-    CHECK( vecIdx >= (int)gopBits.size(), "array idx out of bounds" );
+    CHECK_vvenc(vecIdx >= (int)gopBits.size(), "array idx out of bounds" );
     it->frameInGopRatio = (double) it->targetBits / gopBits[vecIdx];
     it->targetBits = std::max (1, int (0.5 + it->frameInGopRatio * tgtBits[vecIdx]));
     if (it->poc == 0 && it->isIntra) // put the first I-frame into separate GOP
@@ -848,7 +848,7 @@ void RateCtrl::processGops()
 
 void RateCtrl::updateMinNoiseLevelsGop( const bool flush, const int poc )
 {
-  CHECK( poc <= m_updateNoisePoc, "given TL0 poc before last TL0 poc" );
+  CHECK_vvenc(poc <= m_updateNoisePoc, "given TL0 poc before last TL0 poc" );
 
   const bool bIncomplete = ( poc - m_updateNoisePoc ) < m_pcEncCfg->m_GOPSize;
 
@@ -978,7 +978,7 @@ void RateCtrl::initRateControlPic( Picture& pic, Slice* slice, int& qp, double& 
               encRCSeq->actualBitCnt[ frameLevel ] = encRCSeq->targetBitCnt[ frameLevel ] = 0;
             }
           }
-          CHECK( slice->TLayer >= 7, "analyzed RC frame must have TLayer < 7" );
+          CHECK_vvenc(slice->TLayer >= 7, "analyzed RC frame must have TLayer < 7" );
 
           // try to reach target rate less aggressively in first coded frames, prevents temporary very low quality during second GOP
           if ( it->isStartOfGop && it->poc == m_pcEncCfg->m_GOPSize )

@@ -105,7 +105,7 @@ public:
 
   bool         isUsed()          const { return m_refCount > 0; }
   void         incUsed()               { m_refCount += 1; }
-  void         decUsed()               { CHECK( m_refCount <= 0, "invalid state: release unused picture" ); if( m_refCount > 0 ) m_refCount -= 1; }
+  void         decUsed()               { CHECK_vvenc(m_refCount <= 0, "invalid state: release unused picture" ); if(m_refCount > 0 ) m_refCount -= 1; }
   bool         isLeadTrail()     const { return m_isLead || m_isTrail; }
   int          getPOC()          const { return m_poc; }
   ChromaFormat getChromaFormat() const { return m_origBuf.chromaFormat; }
@@ -113,7 +113,7 @@ public:
 
   void create( int maxFrames, ChromaFormat chromaFormat, const Size& size, bool useFilter )
   {
-    CHECK( m_refCount >= 0, "PicShared already created" );
+    CHECK_vvenc(m_refCount >= 0, "PicShared already created" );
 
     m_maxFrames = maxFrames;
     m_refCount  = 0;
@@ -124,8 +124,8 @@ public:
 
   void reuse( int poc, const vvencYUVBuffer* yuvInBuf )
   {
-    CHECK( m_refCount < 0, "PicShared not created" );
-    CHECK( isUsed(),       "PicShared still in use" );
+    CHECK_vvenc(m_refCount < 0, "PicShared not created" );
+    CHECK_vvenc(isUsed(), "PicShared still in use" );
 
     copyPadToPelUnitBuf( m_origBuf, *yuvInBuf, getChromaFormat() );
 
@@ -264,7 +264,7 @@ public:
 
   void initStage( const VVEncCfg& encCfg, int minQueueSize, int startPoc, bool processLeadTrail, bool sortByPoc, bool nonBlocking )
   {
-    CHECK( processLeadTrail && ! sortByPoc, "sort by coding number only for non lead trail pics supported" );
+    CHECK_vvenc(processLeadTrail && ! sortByPoc, "sort by coding number only for non lead trail pics supported" );
     m_minQueueSize     = minQueueSize;
     m_startPoc         = startPoc;
     m_processLeadTrail = processLeadTrail;
@@ -306,8 +306,8 @@ public:
       pic = new Picture();
       pic->create( chromaFormat, lumaSize, m_ctuSize, m_ctuSize + 16, false );
     }
-    CHECK( pic == nullptr, "out of memory" );
-    CHECK( pic->chromaFormat != chromaFormat || pic->Y().size() != lumaSize, "resolution or format changed" );
+    CHECK_vvenc(pic == nullptr, "out of memory" );
+    CHECK_vvenc(pic->chromaFormat != chromaFormat || pic->Y().size() != lumaSize, "resolution or format changed" );
 
     pic->reset();
     picShared->shareData( pic );
@@ -329,7 +329,7 @@ public:
     {
       for( picItr = m_procList.begin(); picItr != m_procList.end(); picItr++ )
       {
-        CHECK( ! pic->gopEntry->m_isValid, "try to sort picture by invalid gop entry" );
+        CHECK_vvenc(! pic->gopEntry->m_isValid, "try to sort picture by invalid gop entry" );
         if( pic->gopEntry->m_codingNum < ( *picItr )->gopEntry->m_codingNum )
           break;
       }

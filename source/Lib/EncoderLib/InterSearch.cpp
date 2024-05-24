@@ -469,7 +469,7 @@ inline void InterSearch::xTZ2PointSearch( TZSearchStruct& rcStruct )
 inline void InterSearch::xTZ4PointSquareSearch( TZSearchStruct & rcStruct, const int iStartX, const int iStartY, const int iDist )
 {
   const SearchRange& sr = rcStruct.searchRange;
-  CHECK( iDist == 0 || iDist > 2, "Invalid distance" );
+  CHECK_vvenc(iDist == 0 || iDist > 2, "Invalid distance" );
   // 4 point search,                   //     1 2 3
   // search around the start point     //     4 0 5
   // with the required  distance       //     6 7 8
@@ -509,7 +509,7 @@ inline void InterSearch::xTZ8PointSquareSearch( TZSearchStruct& rcStruct, const 
   // 8 point search,                   //   1 2 3
   // search around the start point     //   4 0 5
   // with the required  distance       //   6 7 8
-  CHECK( iDist == 0 , "Invalid distance");
+  CHECK_vvenc(iDist == 0 , "Invalid distance");
   const int iTop        = iStartY - iDist;
   const int iBottom     = iStartY + iDist;
   const int iLeft       = iStartX - iDist;
@@ -564,7 +564,7 @@ inline void InterSearch::xTZ8PointDiamondSearch( TZSearchStruct& rcStruct,
   // 8 point search,                   //   1 2 3
   // search around the start point     //   4 0 5
   // with the required  distance       //   6 7 8
-  CHECK( iDist == 0, "Invalid distance" );
+  CHECK_vvenc(iDist == 0, "Invalid distance" );
   const int iTop        = iStartY - iDist;
   const int iBottom     = iStartY + iDist;
   const int iLeft       = iStartX - iDist;
@@ -1712,7 +1712,7 @@ bool InterSearch::predInterSearch(CodingUnit& cu, Partitioner& partitioner, doub
       else
       {
         cu.smvdMode = 0;
-        CHECK(!cu.affine, "Wrong.");
+        CHECK_vvenc(!cu.affine, "Wrong.");
         uiLastMode = uiLastModeTemp;
       }
     }
@@ -1780,7 +1780,7 @@ void InterSearch::xEstimateMvPredAMVP( CodingUnit& cu, CPelUnitBuf& origBuf, Ref
 
 uint32_t InterSearch::xGetMvpIdxBits(int iIdx, int iNum)
 {
-  CHECK(iIdx < 0 || iNum < 0 || iIdx >= iNum, "Invalid parameters");
+  CHECK_vvenc(iIdx < 0 || iNum < 0 || iIdx >= iNum, "Invalid parameters");
 
   if (iNum == 1)
   {
@@ -1831,7 +1831,7 @@ void InterSearch::xCheckBestMVP ( RefPicList refPicList, const Mv& cMv, Mv& rcMv
 
   AMVPInfo* pcAMVPInfo = &amvpInfo;
 
-  CHECK(pcAMVPInfo->mvCand[riMVPIdx] != rcMvPred, "Invalid MV prediction candidate");
+  CHECK_vvenc(pcAMVPInfo->mvCand[riMVPIdx] != rcMvPred, "Invalid MV prediction candidate");
 
   if (pcAMVPInfo->numCand < 2)
   {
@@ -1918,7 +1918,7 @@ void InterSearch::xMotionEstimation(CodingUnit& cu, CPelUnitBuf& origBuf, RefPic
 
   Mv cMvHalf, cMvQter;
 
-  CHECK(refPicList >= MAX_NUM_REF_LIST_ADAPT_SR || iRefIdxPred>=int(MAX_IDX_ADAPT_SR), "Invalid reference picture list");
+  CHECK_vvenc(refPicList >= MAX_NUM_REF_LIST_ADAPT_SR || iRefIdxPred >= int(MAX_IDX_ADAPT_SR), "Invalid reference picture list");
   m_iSearchRange = m_aaiAdaptSR[refPicList][iRefIdxPred];
 
   int    iSrchRng   = (bBi ? m_bipredSearchRange : m_iSearchRange);
@@ -2473,8 +2473,8 @@ void InterSearch::xTZSearch( const CodingUnit& cu,
 void InterSearch::xPatternSearchIntRefine(CodingUnit& cu, TZSearchStruct&  cStruct, Mv& rcMv, Mv& rcMvPred, int& riMVPIdx, uint32_t& ruiBits, Distortion& ruiCost, const AMVPInfo& amvpInfo, double fWeight)
 {
 
-  CHECK( cu.imv == 0 || cu.imv == IMV_HPEL , "xPatternSearchIntRefine(): Sub-pel MV used.");
-  CHECK( amvpInfo.mvCand[riMVPIdx] != rcMvPred, "xPatternSearchIntRefine(): MvPred issue.");
+  CHECK_vvenc(cu.imv == 0 || cu.imv == IMV_HPEL , "xPatternSearchIntRefine(): Sub-pel MV used.");
+  CHECK_vvenc(amvpInfo.mvCand[riMVPIdx] != rcMvPred, "xPatternSearchIntRefine(): MvPred issue.");
 
   m_pcRdCost->setDistParam(m_cDistParam, *cStruct.pcPatternKey, cStruct.piRefY, cStruct.iRefStride, m_lumaClpRng.bd, COMP_Y, 0, m_pcEncCfg->m_bUseHADME ? ( m_pcEncCfg->m_fastHad ? 2 : 1 ) : 0 );
 
@@ -2495,8 +2495,8 @@ void InterSearch::xPatternSearchIntRefine(CodingUnit& cu, TZSearchStruct&  cStru
 
   cBaseMvd[0] = (rcMv - amvpInfo.mvCand[0]);
   cBaseMvd[1] = (rcMv - amvpInfo.mvCand[1]);
-  CHECK( (cBaseMvd[0].hor & 0x03) != 0 || (cBaseMvd[0].ver & 0x03) != 0 , "xPatternSearchIntRefine(): AMVP cand 0 Mvd issue.");
-  CHECK( (cBaseMvd[1].hor & 0x03) != 0 || (cBaseMvd[1].ver & 0x03) != 0 , "xPatternSearchIntRefine(): AMVP cand 1 Mvd issue.");
+  CHECK_vvenc((cBaseMvd[0].hor & 0x03) != 0 || (cBaseMvd[0].ver & 0x03) != 0 , "xPatternSearchIntRefine(): AMVP cand 0 Mvd issue.");
+  CHECK_vvenc((cBaseMvd[1].hor & 0x03) != 0 || (cBaseMvd[1].ver & 0x03) != 0 , "xPatternSearchIntRefine(): AMVP cand 1 Mvd issue.");
 
   cBaseMvd[0].roundTransPrecInternal2Amvr(cu.imv);
   cBaseMvd[1].roundTransPrecInternal2Amvr(cu.imv);
@@ -3066,18 +3066,18 @@ void InterSearch::xEncodeInterResidualQT(CodingStructure &cs, Partitioner &parti
   {
     if( partitioner.canSplit( TU_MAX_TR_SPLIT, cs ) )
     {
-      CHECK( !bSubdiv, "Not performing the implicit TU split" );
+      CHECK_vvenc(!bSubdiv, "Not performing the implicit TU split" );
     }
     else if( cu.sbtInfo && partitioner.canSplit( CU::getSbtTuSplit( cu.sbtInfo ), cs ) )
     {
-      CHECK( !bSubdiv, "Not performing the implicit TU split - sbt" );
+      CHECK_vvenc(!bSubdiv, "Not performing the implicit TU split - sbt" );
     }
     else
     {
-      CHECK( bSubdiv, "transformsplit not supported" );
+      CHECK_vvenc(bSubdiv, "transformsplit not supported" );
     }
 
-    CHECK(CU::isIntra(cu), "Inter search provided with intra CU");
+    CHECK_vvenc(CU::isIntra(cu), "Inter search provided with intra CU");
 
     if( cu.chromaFormat != CHROMA_400
       && (!CU::isSepTree(cu) || isChroma(partitioner.chType))
@@ -3660,7 +3660,7 @@ void InterSearch::xEstimateInterResidualQT(CodingStructure &cs, Partitioner &par
         }
         if( tu.noResidual )
         {
-          CHECK( currCompFracBits > 0 || currAbsSum, "currCompFracBits > 0 when tu noResidual" );
+          CHECK_vvenc(currCompFracBits > 0 || currAbsSum, "currCompFracBits > 0 when tu noResidual" );
         }
       }
       if (isLast)
@@ -3917,7 +3917,7 @@ void InterSearch::xEstimateInterResidualQT(CodingStructure &cs, Partitioner &par
     }
     if( tu.noResidual )
     {
-      CHECK( m_CABACEstimator->getEstFracBits() > 0, "no residual TU's bits shall be 0" );
+      CHECK_vvenc(m_CABACEstimator->getEstFracBits() > 0, "no residual TU's bits shall be 0" );
     }
 
     csFull->fracBits += m_CABACEstimator->getEstFracBits();
@@ -4004,7 +4004,7 @@ void InterSearch::encodeResAndCalcRdInterCU(CodingStructure &cs, Partitioner &pa
     chroma &= (cu.mcControl >> 1) != 1;
   }
   if( cu.predMode == MODE_INTER )
-    CHECK( CU::isSepTree(cu), "CU with Inter mode must be in single tree" );
+    CHECK_vvenc(CU::isSepTree(cu), "CU with Inter mode must be in single tree" );
 
   const ChromaFormat format      = cs.area.chromaFormat;;
   const int  numValidComponents  = getNumberValidComponents(format);
@@ -4015,7 +4015,7 @@ void InterSearch::encodeResAndCalcRdInterCU(CodingStructure &cs, Partitioner &pa
   {
     cu.skip    = true;
     cu.rootCbf = false;
-    CHECK( cu.sbtInfo != 0, "sbtInfo shall be 0 if CU has no residual" );
+    CHECK_vvenc(cu.sbtInfo != 0, "sbtInfo shall be 0 if CU has no residual" );
     cs.getResiBuf().fill(0);
     cs.getRecoBuf().copyFrom(cs.getPredBuf() );
     if( cs.picHeader->lmcsEnabled && reshapeData.getCTUFlag() && !cu.ciip && !CU::isIBC(cu))
@@ -4211,7 +4211,7 @@ void InterSearch::encodeResAndCalcRdInterCU(CodingStructure &cs, Partitioner &pa
   cs.fracBits = finalFracBits;
   cs.cost     = m_pcRdCost->calcRdCost(cs.fracBits, cs.dist);
 
-  CHECK(cs.tus.size() == 0, "No TUs present");
+  CHECK_vvenc(cs.tus.size() == 0, "No TUs present");
 }
 
 uint64_t InterSearch::xGetSymbolFracBitsInter(CodingStructure &cs, Partitioner &partitioner)
@@ -4234,7 +4234,7 @@ uint64_t InterSearch::xGetSymbolFracBitsInter(CodingStructure &cs, Partitioner &
   }
   else
   {
-    CHECK( cu.skip, "Skip flag has to be off at this point!" );
+    CHECK_vvenc(cu.skip, "Skip flag has to be off at this point!" );
 
     if (cu.Y().valid())
     m_CABACEstimator->cu_skip_flag( cu );
@@ -5606,7 +5606,7 @@ void InterSearch::xEstimateAffineAMVP(CodingUnit& cu, AffineAMVPInfo& affineAMVP
 
   // Fill the MV Candidates
   CU::fillAffineMvpCand(cu, refPicList, iRefIdx, affineAMVPInfo);
-  CHECK(affineAMVPInfo.numCand == 0, "Assertion failed.");
+  CHECK_vvenc(affineAMVPInfo.numCand == 0, "Assertion failed.");
 
   PelUnitBuf predBuf = m_tmpStorageLCU.getCompactBuf( cu );
 
@@ -6190,7 +6190,7 @@ void InterSearch::xIBCEstimation(CodingUnit& cu, PelUnitBuf& origBuf, Mv* pcMvPr
   cStruct.pcPatternKey  = pcPatternKey;
   cStruct.iRefStride    = refBuf.stride;
   cStruct.piRefY        = refBuf.buf;
-  CHECK( cu.imv == IMV_HPEL, "IF_IBC" );
+  CHECK_vvenc(cu.imv == IMV_HPEL, "IF_IBC" );
   cStruct.imvShift      = cu.imv << 1;
   cStruct.subShiftMode  = 0;
   cStruct.uiBestSad     = MAX_DISTORTION;
@@ -6442,7 +6442,7 @@ static inline bool isYPartBefore( SplitSeries series, const int ctuSizeLog2, con
   const int posCtuX = pos.x >> ctuSizeLog2;
   const int posCtuY = pos.y >> ctuSizeLog2;
 
-  CHECK( refCtuX != posCtuX || refCtuY != posCtuY, "This method can only be applied for positions within the same CTU" );
+  CHECK_vvenc(refCtuX != posCtuX || refCtuY != posCtuY, "This method can only be applied for positions within the same CTU" );
 
 #endif
   const int ctuMask = ( 1 << ctuSizeLog2 ) - 1;

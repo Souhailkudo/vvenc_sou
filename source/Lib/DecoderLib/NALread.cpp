@@ -73,7 +73,7 @@ static int convertPayloadToRBSP(std::vector<uint8_t>& nalUnitBuf, InputBitstream
   bitstream->clearEmulationPreventionByteLocation();
   for (it_read = it_write = nalUnitBuf.begin(); it_read != nalUnitBuf.end(); it_read++, it_write++, pos++)
   {
-    CHECK(zeroCount >= 2 && *it_read < 0x03, "Zero count is '2' and read value is small than '3'");
+    CHECK_vvenc(zeroCount >= 2 && *it_read < 0x03, "Zero count is '2' and read value is small than '3'");
     if (zeroCount == 2 && *it_read == 0x03)
     {
       bitstream->pushEmulationPreventionByteLocation( pos );
@@ -84,12 +84,12 @@ static int convertPayloadToRBSP(std::vector<uint8_t>& nalUnitBuf, InputBitstream
       {
         break;
       }
-      CHECK(*it_read > 0x03, "Read a value bigger than '3'");
+      CHECK_vvenc(*it_read > 0x03, "Read a value bigger than '3'");
     }
     zeroCount = (*it_read == 0x00) ? zeroCount+1 : 0;
     *it_write = *it_read;
   }
-  CHECK(zeroCount != 0, "Zero count not '0'");
+  CHECK_vvenc(zeroCount != 0, "Zero count not '0'");
 
   if (isVclNalUnit)
   {
@@ -129,7 +129,7 @@ void readNalUnitHeader(InputNALUnit& nalu)
   nalu.m_forbiddenZeroBit   = bs.read(1);                 // forbidden zero bit
   nalu.m_nuhReservedZeroBit = bs.read(1);                 // nuh_reserved_zero_bit
   nalu.m_nuhLayerId         = bs.read(6);                 // nuh_layer_id
-  CHECK(nalu.m_nuhLayerId > 55, "The value of nuh_layer_id shall be in the range of 0 to 55, inclusive");
+  CHECK_vvenc(nalu.m_nuhLayerId > 55, "The value of nuh_layer_id shall be in the range of 0 to 55, inclusive");
   nalu.m_nalUnitType        = (vvencNalUnitType) bs.read(5);   // nal_unit_type
   nalu.m_temporalId = bs.read(3) - 1;                 // nuh_temporal_id_plus1
 
@@ -140,7 +140,7 @@ void readNalUnitHeader(InputNALUnit& nalu)
   // only check these rules for base layer
   if (nalu.m_nuhLayerId == 0 && nalu.m_temporalId == 0)
   {
-    CHECK(nalu.m_nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_STSA
+    CHECK_vvenc(nalu.m_nalUnitType == VVENC_NAL_UNIT_CODED_SLICE_STSA
         , "When NAL unit type is equal to STSA_NUT, TemporalId shall not be equal to 0"); 
   }
 }
@@ -165,7 +165,7 @@ void read(InputNALUnit& nalu, MsgLog& msg )
 bool checkPictureHeaderInSliceHeaderFlag(InputNALUnit& nalu)
 {
   InputBitstream& bitstream = nalu.getBitstream();
-  CHECK(bitstream.getByteLocation() != 2, "The picture_header_in_slice_header_flag is the first bit after the NAL unit header");
+  CHECK_vvenc(bitstream.getByteLocation() != 2, "The picture_header_in_slice_header_flag is the first bit after the NAL unit header");
   return (bool)bitstream.read(1);
 }
 

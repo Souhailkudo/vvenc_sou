@@ -288,7 +288,7 @@ Distortion RdCost::xGetSAD_SIMD( const DistParam &rcDtParam )
   else
   {
     // Do with step of 4
-    CHECK( ( iCols & 3 ) != 0, "Not divisible by 4: " << iCols );
+    CHECK_vvenc((iCols & 3 ) != 0, "Not divisible by 4: " << iCols );
     __m128i vzero = _mm_setzero_si128();
     __m128i vsum32 = vzero;
     for( int iY = 0; iY < iRows; iY += iSubStep )
@@ -656,7 +656,7 @@ static uint32_t xCalcHAD8x8_SSE( const Torg *piOrg, const Tcur *piCur, const int
 {
   __m128i m1[2][8], m2[2][8];
 
-  CHECK( iBitDepth > 10, "Only bit-depths of up to 10 bits supported!" );
+  CHECK_vvenc(iBitDepth > 10, "Only bit-depths of up to 10 bits supported!" );
 
   for( int k = 0; k < 8; k++ )
   {
@@ -803,7 +803,7 @@ static uint32_t xCalcHAD16x16_fast_SSE( const Torg *piOrg, const Tcur *piCur, co
 {
   __m128i m1[2][8], m2[2][8];
 
-  CHECK( iBitDepth > 10, "Only bit-depths of up to 10 bits supported!" );
+  CHECK_vvenc(iBitDepth > 10, "Only bit-depths of up to 10 bits supported!" );
 
   for( int k = 0; k < 8; k++ )
   {

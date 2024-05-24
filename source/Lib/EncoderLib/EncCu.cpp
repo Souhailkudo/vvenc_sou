@@ -439,9 +439,9 @@ void EncCu::xCompressCtu( CodingStructure& cs, const UnitArea& area, const unsig
   
   // Ensure that a coding was found
   // Selected mode's RD-cost must be not MAX_DOUBLE.
-  CHECK( bestCS->cus.empty()                                   , "No possible encoding found" );
-  CHECK( bestCS->cus[0]->predMode == NUMBER_OF_PREDICTION_MODES, "No possible encoding found" );
-  CHECK( bestCS->cost             == MAX_DOUBLE                , "No possible encoding found" );
+  CHECK_vvenc(bestCS->cus.empty()                                   , "No possible encoding found" );
+  CHECK_vvenc(bestCS->cus[0]->predMode == NUMBER_OF_PREDICTION_MODES, "No possible encoding found" );
+  CHECK_vvenc(bestCS->cost == MAX_DOUBLE                , "No possible encoding found" );
 
   if ( m_wppMutex ) m_wppMutex->lock();
 
@@ -466,9 +466,9 @@ void EncCu::xCompressCtu( CodingStructure& cs, const UnitArea& area, const unsig
     
     // Ensure that a coding was found
     // Selected mode's RD-cost must be not MAX_DOUBLE.
-    CHECK( bestCS->cus.empty()                                   , "No possible encoding found" );
-    CHECK( bestCS->cus[0]->predMode == NUMBER_OF_PREDICTION_MODES, "No possible encoding found" );
-    CHECK( bestCS->cost             == MAX_DOUBLE                , "No possible encoding found" );
+    CHECK_vvenc(bestCS->cus.empty()                                   , "No possible encoding found" );
+    CHECK_vvenc(bestCS->cus[0]->predMode == NUMBER_OF_PREDICTION_MODES, "No possible encoding found" );
+    CHECK_vvenc(bestCS->cost == MAX_DOUBLE                , "No possible encoding found" );
 
     if ( m_wppMutex ) m_wppMutex->lock();
 
@@ -493,7 +493,7 @@ bool EncCu::xCheckBestMode( CodingStructure *&tempCS, CodingStructure *&bestCS, 
     if( tempCS->cus.size() == 1 )
     {
       const CodingUnit& cu = *tempCS->cus.front();
-      CHECK( cu.skip && !cu.mergeFlag, "Skip flag without a merge flag is not allowed!" );
+      CHECK_vvenc(cu.skip && !cu.mergeFlag, "Skip flag without a merge flag is not allowed!" );
     }
 
     DTRACE_BEST_MODE( tempCS, bestCS, m_cRdCost.getLambda(true), useEDO );
@@ -662,7 +662,7 @@ void EncCu::xCompressCU( CodingStructure*& tempCS, CodingStructure*& bestCS, Par
           const unsigned bimCtuWidth = (pcv.lumaWidth + bimCtuSize - 1) / bimCtuSize;
 
           ctuAddr = getCtuAddrFromCtuSize (partitioner.currQgPos, Log2 (bimCtuSize), bimCtuWidth);
-          CHECK (ctuAddr >= bimQpSize, "ctuAddr exceeds size of m_ctuBimQpOffset");
+          CHECK_vvenc (ctuAddr >= bimQpSize, "ctuAddr exceeds size of m_ctuBimQpOffset");
         }
         tempCS->currQP[partitioner.chType] = tempCS->baseQP =
         bestCS->currQP[partitioner.chType] = bestCS->baseQP = Clip3 (-sps.qpBDOffset[CH_L], MAX_QP, tempCS->baseQP + pic->m_picShared->m_ctuBimQpOffset[ctuAddr]);
@@ -672,7 +672,7 @@ void EncCu::xCompressCU( CodingStructure*& tempCS, CodingStructure*& bestCS, Par
     }
     else if (m_pcEncCfg->m_usePerceptQPA && slice.isIntra()) // currSubdiv 2 - use sub-CTU QPA
     {
-      CHECK ((partitioner.currArea().lwidth() >= pcv.maxCUSize) || (partitioner.currArea().lheight() >= pcv.maxCUSize), "sub-CTU delta-QP error");
+      CHECK_vvenc ((partitioner.currArea().lwidth() >= pcv.maxCUSize) || (partitioner.currArea().lheight() >= pcv.maxCUSize), "sub-CTU delta-QP error");
       tempCS->currQP[partitioner.chType] = tempCS->baseQP = BitAllocation::applyQPAdaptationSubCtu (&slice, m_pcEncCfg, lumaArea, m_pcRateCtrl->getMinNoiseLevels());
 
       if (m_pcEncCfg->m_usePerceptQPATempFiltISlice == 2)
@@ -998,7 +998,7 @@ void EncCu::xCompressCU( CodingStructure*& tempCS, CodingStructure*& bestCS, Par
   int numCUInThisNode = (int)bestCS->cus.size();
   if( numCUInThisNode > 1 && bestCS->cus.back()->chType == CH_C && !CS::isDualITree( *bestCS ) )
   {
-    CHECK( bestCS->cus[numCUInThisNode-2]->chType != CH_L, "wrong chType" );
+    CHECK_vvenc(bestCS->cus[numCUInThisNode - 2]->chType != CH_L, "wrong chType" );
     bestCS->prevQP[partitioner.chType] = bestCS->cus[numCUInThisNode-2]->qp;
   }
   else
@@ -1029,9 +1029,9 @@ void EncCu::xCompressCU( CodingStructure*& tempCS, CodingStructure*& bestCS, Par
 
   // Assert if Best prediction mode is NONE
   // Selected mode's RD-cost must be not MAX_DOUBLE.
-  CHECK( bestCS->cus.empty()                                   , "No possible encoding found" );
-  CHECK( bestCS->cus[0]->predMode == NUMBER_OF_PREDICTION_MODES, "No possible encoding found" );
-  CHECK( bestCS->cost             == MAX_DOUBLE                , "No possible encoding found" );
+  CHECK_vvenc(bestCS->cus.empty()                                   , "No possible encoding found" );
+  CHECK_vvenc(bestCS->cus[0]->predMode == NUMBER_OF_PREDICTION_MODES, "No possible encoding found" );
+  CHECK_vvenc(bestCS->cost == MAX_DOUBLE                , "No possible encoding found" );
 }
 
 
@@ -1049,17 +1049,17 @@ void EncCu::xCheckModeSplit(CodingStructure *&tempCS, CodingStructure *&bestCS, 
     //change cons modes
     if( signalModeConsVal == LDT_MODE_TYPE_SIGNAL )
     {
-      CHECK( numRoundRdo != 2, "numRoundRdo shall be 2 - [LDT_MODE_TYPE_SIGNAL]" );
+      CHECK_vvenc(numRoundRdo != 2, "numRoundRdo shall be 2 - [LDT_MODE_TYPE_SIGNAL]" );
       partitioner.modeType = (i == 0) ? MODE_TYPE_INTER : MODE_TYPE_INTRA;
     }
     else if( signalModeConsVal == LDT_MODE_TYPE_INFER )
     {
-      CHECK( numRoundRdo != 1, "numRoundRdo shall be 1 - [LDT_MODE_TYPE_INFER]" );
+      CHECK_vvenc(numRoundRdo != 1, "numRoundRdo shall be 1 - [LDT_MODE_TYPE_INFER]" );
       partitioner.modeType = MODE_TYPE_INTRA;
     }
     else if( signalModeConsVal == LDT_MODE_TYPE_INHERIT )
     {
-      CHECK( numRoundRdo != 1, "numRoundRdo shall be 1 - [LDT_MODE_TYPE_INHERIT]" );
+      CHECK_vvenc(numRoundRdo != 1, "numRoundRdo shall be 1 - [LDT_MODE_TYPE_INHERIT]" );
       partitioner.modeType = modeTypeParent;
     }
 
@@ -1108,7 +1108,7 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
   const PartSplit split = getPartSplit( encTestMode );
   const ModeType modeTypeChild = partitioner.modeType;
 
-  CHECK( split == CU_DONT_SPLIT, "No proper split provided!" );
+  CHECK_vvenc(split == CU_DONT_SPLIT, "No proper split provided!" );
 
   tempCS->initStructData( qp );
 
@@ -1151,7 +1151,7 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
   {
     if( chromaNotSplit )
     {
-      CHECK( partitioner.chType != CH_L, "chType must be luma" );
+      CHECK_vvenc(partitioner.chType != CH_L, "chType must be luma" );
       partitioner.treeType = TREE_L;
     }
     else
@@ -1160,8 +1160,8 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
     }
   }
 
-  CHECK(!(split == CU_QUAD_SPLIT || split == CU_HORZ_SPLIT || split == CU_VERT_SPLIT
-    || split == CU_TRIH_SPLIT || split == CU_TRIV_SPLIT), "invalid split type");
+  CHECK_vvenc(!(split == CU_QUAD_SPLIT || split == CU_HORZ_SPLIT || split == CU_VERT_SPLIT
+                || split == CU_TRIH_SPLIT || split == CU_TRIV_SPLIT), "invalid split type");
 
   partitioner.splitCurrArea( split, *tempCS );
   bool qgEnableChildren = partitioner.currQgEnable(); // QG possible at children level
@@ -1210,7 +1210,7 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
 
       if( bestSubCS->cost == MAX_DOUBLE )
       {
-        CHECK( split == CU_QUAD_SPLIT, "Split decision reusing cannot skip quad split" );
+        CHECK_vvenc(split == CU_QUAD_SPLIT, "Split decision reusing cannot skip quad split" );
 
         tempCS->cost = MAX_DOUBLE;
         tempCS->costDbOffset = 0;
@@ -1236,14 +1236,14 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
       {
         for( int i = 0; i < bestSubCS->cus.size(); i++ )
         {
-          CHECK( bestSubCS->cus[i]->predMode != MODE_INTER, "all CUs must be inter mode in an Inter coding region (SCIPU)" );
+          CHECK_vvenc(bestSubCS->cus[i]->predMode != MODE_INTER, "all CUs must be inter mode in an Inter coding region (SCIPU)" );
         }
       }
       else if( partitioner.isConsIntra() )
       {
         for( int i = 0; i < bestSubCS->cus.size(); i++ )
         {
-          CHECK( bestSubCS->cus[i]->predMode == MODE_INTER, "all CUs must not be inter mode in an Intra coding region (SCIPU)" );
+          CHECK_vvenc(bestSubCS->cus[i]->predMode == MODE_INTER, "all CUs must not be inter mode in an Intra coding region (SCIPU)" );
         }
       }
 
@@ -1291,7 +1291,7 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
         int numParentNodeToQgCS = 0;
         while( qgCS->area.lumaPos() != partitioner.currQgPos )
         {
-          CHECK( qgCS->parent == nullptr, "parent of qgCS shall exsit" );
+          CHECK_vvenc(qgCS->parent == nullptr, "parent of qgCS shall exsit" );
           qgCS = qgCS->parent;
           numParentNodeToQgCS++;
         }
@@ -1301,7 +1301,7 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
         for( int i = 0; i < numParentNodeToQgCS; i++ )
         {
           //checking each parent
-          CHECK( parentCS == nullptr, "parentCS shall exsit" );
+          CHECK_vvenc(parentCS == nullptr, "parentCS shall exsit" );
           for( const auto &cu : parentCS->cus )
           {
             if( cu->rootCbf && !isChroma( cu->chType ) )
@@ -1319,7 +1319,7 @@ void EncCu::xCheckModeSplitInternal(CodingStructure *&tempCS, CodingStructure *&
       {
         //get pred QP of the QG
         const CodingUnit* cuFirst = qgCS->getCU( CH_L, TREE_D );
-        CHECK( cuFirst->lumaPos() != partitioner.currQgPos, "First cu of the Qg is wrong" );
+        CHECK_vvenc(cuFirst->lumaPos() != partitioner.currQgPos, "First cu of the Qg is wrong" );
         int predQp = CU::predictQP( *cuFirst, qgCS->prevQP[CH_L] );
 
         //revise to predQP
@@ -1580,9 +1580,9 @@ void EncCu::xCheckDQP( CodingStructure& cs, Partitioner& partitioner, bool bKeep
 
   CodingUnit* cuFirst = cs.getCU( partitioner.chType, partitioner.treeType );
 
-  CHECK( bKeepCtx && cs.cus.size() <= 1 && partitioner.getImplicitSplit( cs ) == CU_DONT_SPLIT, "bKeepCtx should only be set in split case" );
-  CHECK( !bKeepCtx && cs.cus.size() > 1, "bKeepCtx should never be set for non-split case" );
-  CHECK( !cuFirst, "No CU available" );
+  CHECK_vvenc(bKeepCtx && cs.cus.size() <= 1 && partitioner.getImplicitSplit(cs ) == CU_DONT_SPLIT, "bKeepCtx should only be set in split case" );
+  CHECK_vvenc(!bKeepCtx && cs.cus.size() > 1, "bKeepCtx should never be set for non-split case" );
+  CHECK_vvenc(!cuFirst, "No CU available" );
 
   bool hasResidual = false;
   for( const auto &cu : cs.cus )
@@ -1638,7 +1638,7 @@ void EncCu::xCheckRDCostMerge( CodingStructure *&tempCS, CodingStructure *&bestC
   const Slice &slice = *tempCS->slice;
   const SPS& sps = *tempCS->sps;
 
-  CHECK( slice.sliceType == VVENC_I_SLICE, "Merge modes not available for I-slices" );
+  CHECK_vvenc(slice.sliceType == VVENC_I_SLICE, "Merge modes not available for I-slices" );
 
   tempCS->initStructData( encTestMode.qp );
 
@@ -1829,7 +1829,7 @@ void EncCu::xCheckRDCostMerge( CodingStructure *&tempCS, CodingStructure *&bestC
         m_SortedPelUnitBufs.insert( insertPos, (int)RdModeList.size() );
         if (m_pcEncCfg->m_useFastMrg < 2)
         {
-          CHECK(std::min(uiMergeCand + 1, uiNumMrgSATDCand) != RdModeList.size(), "");
+          CHECK_vvenc(std::min(uiMergeCand + 1, uiNumMrgSATDCand) != RdModeList.size(), "");
         }
       }
 
@@ -1990,7 +1990,7 @@ void EncCu::xCheckRDCostMerge( CodingStructure *&tempCS, CodingStructure *&bestC
           CU::spanMotionInfo(cu, mergeCtx);
           cu.mvRefine = true;
           cu.mcControl = (refineStep > 2) || (m_pcEncCfg->m_MMVD > 1) ? 3 : 0;
-          CHECK(!cu.mmvdMergeFlag, "MMVD merge should be set");
+          CHECK_vvenc(!cu.mmvdMergeFlag, "MMVD merge should be set");
           // Don't do chroma MC here
           m_cInterSearch.motionCompensation(cu, m_SortedPelUnitBufs.getTestBuf(), REF_PIC_LIST_X);
           cu.mcControl = 0;
@@ -2150,7 +2150,7 @@ void EncCu::xCheckRDCostMerge( CodingStructure *&tempCS, CodingStructure *&bestC
       else if (RdModeList[uiMrgHADIdx].isAffine)
       {
         // continue;
-        CHECK(uiMergeCand >= affineMergeCtx.numValidMergeCand, "");
+        CHECK_vvenc(uiMergeCand >= affineMergeCtx.numValidMergeCand, "");
         cu.mmvdSkip = false;
         cu.regularMergeFlag = false;
         cu.ciip = false;
@@ -2259,7 +2259,7 @@ void EncCu::xCheckRDCostMerge( CodingStructure *&tempCS, CodingStructure *&bestC
           else
           {
             PelUnitBuf* sortedListBuf = m_SortedPelUnitBufs.getBufFromSortedList(uiMrgHADIdx);
-            CHECK(!sortedListBuf, "Buffer failed");
+            CHECK_vvenc(!sortedListBuf, "Buffer failed");
             tempCS->getPredBuf().copyFrom(*sortedListBuf);
           }
         }
@@ -2273,7 +2273,7 @@ void EncCu::xCheckRDCostMerge( CodingStructure *&tempCS, CodingStructure *&bestC
 
       if (!cu.mmvdSkip && !cu.ciip && !cu.affine && uiNoResidualPass != 0)
       {
-        CHECK(uiMergeCand >= mergeCtx.numValidMergeCand, "out of normal merge");
+        CHECK_vvenc(uiMergeCand >= mergeCtx.numValidMergeCand, "out of normal merge");
         isTestSkipMerge[uiMergeCand] = true;
       }
 
@@ -3073,7 +3073,7 @@ void EncCu::xCheckRDCostInter( CodingStructure *&tempCS, CodingStructure *&bestC
       continue;
     }
 
-    CHECK(!(testBcw || (!testBcw && bcwIdx == BCW_DEFAULT)), " !( bTestBcw || (!bTestBcw && bcwIdx == BCW_DEFAULT ) )");
+    CHECK_vvenc(!(testBcw || (!testBcw && bcwIdx == BCW_DEFAULT)), " !( bTestBcw || (!bTestBcw && bcwIdx == BCW_DEFAULT ) )");
         
     xEncodeInterResidual(tempCS, bestCS, partitioner, encTestMode, 0, 0, &equBcwCost);
     
@@ -3271,7 +3271,7 @@ void EncCu::xCheckRDCostInterIMV(CodingStructure *&tempCS, CodingStructure *&bes
           {
             continue;
           }
-          CHECK(!(testBcw || (!testBcw && bcwIdx == BCW_DEFAULT)), " !( bTestBcw || (!bTestBcw && bcwIdx == BCW_DEFAULT ) )");
+          CHECK_vvenc(!(testBcw || (!testBcw && bcwIdx == BCW_DEFAULT)), " !( bTestBcw || (!bTestBcw && bcwIdx == BCW_DEFAULT ) )");
 
           if( m_pcEncCfg->m_BCW == 2 )
           {
@@ -3492,7 +3492,7 @@ void EncCu::xCalDebCost( CodingStructure &cs, Partitioner &partitioner )
 
   ChannelType dbChType = CU::isSepTree(*cu) ? partitioner.chType : MAX_NUM_CH;
 
-  CHECK( CU::isSepTree(*cu) && !cu->Y().valid() && partitioner.chType == CH_L, "xxx" );
+  CHECK_vvenc(CU::isSepTree(*cu) && !cu->Y().valid() && partitioner.chType == CH_L, "xxx" );
 
   if( cu->Y() .valid() ) m_cLoopFilter.setOrigin( CH_L, cu->lumaPos() );
   if( cu->chromaFormat != VVENC_CHROMA_400 && cu->Cb().valid() ) m_cLoopFilter.setOrigin( CH_C, cu->chromaPos() );
@@ -3936,7 +3936,7 @@ void EncCu::xEncodeInterResidual( CodingStructure *&tempCS, CodingStructure *&be
       }
       else
       {
-        CHECK( equBcwCost == NULL, "equBcwCost == NULL" );
+        CHECK_vvenc(equBcwCost == NULL, "equBcwCost == NULL" );
       }
       if( tempCS->slice->checkLDC && !cu->imv && cu->BcwIdx != BCW_DEFAULT && tempCS->cost < m_bestBcwCost[1] )
       {
@@ -3965,7 +3965,7 @@ void EncCu::xEncodeDontSplit( CodingStructure &cs, Partitioner &partitioner )
 
   m_CABACEstimator->split_cu_mode( CU_DONT_SPLIT, cs, partitioner );
   if( partitioner.treeType == TREE_C )
-    CHECK( m_CABACEstimator->getEstFracBits() != 0, "must be 0 bit" );
+    CHECK_vvenc(m_CABACEstimator->getEstFracBits() != 0, "must be 0 bit" );
 
   cs.fracBits += m_CABACEstimator->getEstFracBits(); // split bits
   cs.cost      = m_cRdCost.calcRdCost( cs.fracBits, cs.dist );
@@ -4051,7 +4051,7 @@ bool EncCu::xCheckSATDCostAffineMerge(CodingStructure*& tempCS, CodingUnit& cu, 
 
   for( uint32_t uiAffMergeCand = 0; uiAffMergeCand < affineMergeCtx.numValidMergeCand; uiAffMergeCand++ )
   {
-    CHECK( uiAffMergeCand >= AFFINE_MRG_MAX_NUM_CANDS, "Out of bounds!" );
+    CHECK_vvenc(uiAffMergeCand >= AFFINE_MRG_MAX_NUM_CANDS, "Out of bounds!" );
 
     if( ( m_pcEncCfg->m_Affine > 1 ) && sameMV[uiAffMergeCand] )
     {
@@ -4110,8 +4110,8 @@ bool EncCu::xCheckSATDCostAffineMerge(CodingStructure*& tempCS, CodingUnit& cu, 
 
 uint64_t EncCu::xCalcPuMeBits( const CodingUnit &cu )
 {
-  CHECK( !cu.mergeFlag, "Should only be used for merge!" );
-  CHECK( CU::isIBC( cu ), "Shound not be used for IBC" );
+  CHECK_vvenc(!cu.mergeFlag, "Should only be used for merge!" );
+  CHECK_vvenc(CU::isIBC(cu ), "Shound not be used for IBC" );
 
   m_CABACEstimator->resetBits();
   m_CABACEstimator->merge_flag(cu);

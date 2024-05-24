@@ -207,8 +207,8 @@ bool      allowLfnstWithMip             (const Size& block);
 template<typename T, size_t N>
 uint32_t updateCandList( T uiMode, double uiCost, static_vector<T, N> &candModeList, static_vector<double, N> &candCostList, size_t uiFastCandNum = N, int *iserttPos = nullptr )
 {
-  CHECK( std::min( uiFastCandNum, candModeList.size() ) != std::min( uiFastCandNum, candCostList.size() ), "Sizes do not match!" );
-  CHECK( uiFastCandNum > candModeList.capacity(), "The vector is to small to hold all the candidates!" );
+  CHECK_vvenc(std::min(uiFastCandNum, candModeList.size() ) != std::min(uiFastCandNum, candCostList.size() ), "Sizes do not match!" );
+  CHECK_vvenc(uiFastCandNum > candModeList.capacity(), "The vector is to small to hold all the candidates!" );
 
   size_t i;
   size_t shift = 0;

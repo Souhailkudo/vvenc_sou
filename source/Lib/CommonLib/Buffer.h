@@ -449,7 +449,7 @@ void AreaBuf<T>::removeHighFreq( const AreaBuf<const T>& other, const bool bClip
     else if (!(width & 3))
       g_pelBufOP.removeHighFreq4(dst, dstStride, src, srcStride, width, height);
     else
-      CHECK(true, "Not supported");
+      CHECK_vvenc(true, "Not supported");
   }
   else
   {
@@ -547,7 +547,7 @@ void AreaBuf<T>::extendBorderPel(unsigned marginX, unsigned marginY)
   int w = width;
   int s = stride;
 
-  CHECK((w + 2 * marginX) > s, "Size of buffer too small to extend");
+  CHECK_vvenc((w + 2 * marginX) > s, "Size of buffer too small to extend");
   // do left and right margins
   for (int y = 0; y < h; y++)
   {
@@ -584,7 +584,7 @@ void AreaBuf<T>::padBorderPel( unsigned marginX, unsigned marginY, int dir )
   int h = height;
   int w = width;
 
-  CHECK( w  > s, "Size of buffer too small to extend" );
+  CHECK_vvenc(w > s, "Size of buffer too small to extend" );
 
   // top-left margin
   if ( dir == 1 )
@@ -623,7 +623,7 @@ template<> void AreaBuf<Pel>::transposedFrom( const AreaBuf<const Pel>& other );
 template<typename T>
 void AreaBuf<T>::transposedFrom( const AreaBuf<const T>& other )
 {
-  CHECK( width * height != other.width * other.height, "Incompatible size" );
+  CHECK_vvenc(width * height != other.width * other.height, "Incompatible size" );
 
         T* dst  =       buf;
   const T* src  = other.buf;
@@ -746,7 +746,7 @@ void UnitBuf<T>::fill( const T &val )
 template<typename T>
 void UnitBuf<T>::copyFrom(const UnitBuf<const T> &other)
 {
-  CHECK( chromaFormat != other.chromaFormat, "Incompatible formats" );
+  CHECK_vvenc(chromaFormat != other.chromaFormat, "Incompatible formats" );
 
   for( int i = 0; i < bufs.size(); i++)
   {
@@ -758,8 +758,8 @@ void UnitBuf<T>::copyFrom(const UnitBuf<const T> &other)
 template<typename T>
 void UnitBuf<T>::subtract( const UnitBuf<const T>& minuend, const UnitBuf<const T>& subtrahend )
 {
-  CHECK( chromaFormat != minuend.chromaFormat, "Incompatible formats" );
-  CHECK( chromaFormat != subtrahend.chromaFormat, "Incompatible formats");
+  CHECK_vvenc(chromaFormat != minuend.chromaFormat, "Incompatible formats" );
+  CHECK_vvenc(chromaFormat != subtrahend.chromaFormat, "Incompatible formats");
 
   for( int i = 0; i < bufs.size(); i++ )
   {
@@ -770,9 +770,9 @@ void UnitBuf<T>::subtract( const UnitBuf<const T>& minuend, const UnitBuf<const 
 template<typename T>
 void UnitBuf<T>::copyClip(const UnitBuf<const T> &src, const ClpRngs &clpRngs, const bool lumaOnly, const bool chromaOnly)
 {
-  CHECK( chromaFormat != src.chromaFormat, "Incompatible formats" );
+  CHECK_vvenc(chromaFormat != src.chromaFormat, "Incompatible formats" );
 
-  CHECK(lumaOnly && chromaOnly, "Not allowed to have both lumaOnly and chromaOnly selected");
+  CHECK_vvenc(lumaOnly && chromaOnly, "Not allowed to have both lumaOnly and chromaOnly selected");
   const int compStart = chromaOnly ? 1 : 0;
   const int compEnd   = lumaOnly   ? 1 : ( int ) bufs.size();
   for( int i = compStart; i < compEnd; i++ )
@@ -784,8 +784,8 @@ void UnitBuf<T>::copyClip(const UnitBuf<const T> &src, const ClpRngs &clpRngs, c
 template<typename T>
 void UnitBuf<T>::reconstruct(const UnitBuf<const T>& pred, const UnitBuf<const T>& resi, const ClpRngs& clpRngs)
 {
-  CHECK( chromaFormat != pred.chromaFormat, "Incompatible formats" );
-  CHECK( chromaFormat != resi.chromaFormat, "Incompatible formats" );
+  CHECK_vvenc(chromaFormat != pred.chromaFormat, "Incompatible formats" );
+  CHECK_vvenc(chromaFormat != resi.chromaFormat, "Incompatible formats" );
 
   for( int i = 0; i < bufs.size(); i++ )
   {
@@ -799,7 +799,7 @@ void UnitBuf<T>::addAvg(const UnitBuf<const T>& other1, const UnitBuf<const T>& 
   const int istart = chromaOnly ? 1 : 0;
   const int iend   = lumaOnly   ? 1 : ( int ) bufs.size();
 
-  CHECK( lumaOnly && chromaOnly, "should not happen" );
+  CHECK_vvenc(lumaOnly && chromaOnly, "should not happen" );
 
   for( int i = istart; i < iend; i++)
   {
@@ -813,7 +813,7 @@ void UnitBuf<T>::addWeightedAvg(const UnitBuf<const T>& other1, const UnitBuf<co
   const int istart = chromaOnly ? 1 : 0;
   const int iend   = lumaOnly   ? 1 : ( int ) bufs.size();
 
-  CHECK( lumaOnly && chromaOnly, "should not happen" );
+  CHECK_vvenc(lumaOnly && chromaOnly, "should not happen" );
 
   for ( int i = istart; i < iend; i++)
   {
@@ -987,13 +987,13 @@ struct CompStorage : public PelBuf
 
   void compactResize( const Size& size )
   {
-    CHECK( size.area() > m_allocSize, "Resizing causes buffer overflow!" );
+    CHECK_vvenc(size.area() > m_allocSize, "Resizing causes buffer overflow!" );
     Size::operator=( size );
     stride = size.width;
   }
   void create( const Size& size )
   {
-    CHECK( m_memory, "Trying to re-create an already initialized buffer" );
+    CHECK_vvenc(m_memory, "Trying to re-create an already initialized buffer" );
     m_allocSize = size.area();
     m_memory = new Pel[m_allocSize];
     PelBuf::operator=( PelBuf( m_memory, size ) );
@@ -1038,13 +1038,13 @@ struct SortedPelUnitBufs
 
   void reduceTo(int numModes)
   {
-    CHECK( numModes > m_sortedList.size(), "not enough buffers");
+    CHECK_vvenc(numModes > m_sortedList.size(), "not enough buffers");
     m_sortedList.resize(numModes);
   }
 
   void prepare( const UnitArea& ua, int numModes)
   {
-    CHECK( numModes > NumEntries, "not enough buffers");
+    CHECK_vvenc(numModes > NumEntries, "not enough buffers");
     m_sortedList.resize(numModes);
     for (size_t i = 0; i < numModes; i++)
     {
@@ -1062,8 +1062,8 @@ struct SortedPelUnitBufs
 
   void swap( unsigned pos1, unsigned pos2 )
   {
-    CHECK( pos1 >= m_sortedList.size(), "index out of range" );
-    CHECK( pos2 >= m_sortedList.size(), "index out of range" );
+    CHECK_vvenc(pos1 >= m_sortedList.size(), "index out of range" );
+    CHECK_vvenc(pos2 >= m_sortedList.size(), "index out of range" );
     std::swap(m_sortedList[pos1], m_sortedList[pos2]);
   }
 

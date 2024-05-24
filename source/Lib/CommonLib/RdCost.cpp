@@ -695,7 +695,7 @@ Distortion RdCost::xGetSSE4( const DistParam &rcDtParam )
 {
   if ( rcDtParam.applyWeight )
   {
-    CHECK( rcDtParam.org.width != 4, "Invalid size" );
+    CHECK_vvenc(rcDtParam.org.width != 4, "Invalid size" );
     THROW(" no support");
   }
 
@@ -729,7 +729,7 @@ Distortion RdCost::xGetSSE8( const DistParam &rcDtParam )
 {
   if ( rcDtParam.applyWeight )
   {
-    CHECK( rcDtParam.org.width != 8, "Invalid size" );
+    CHECK_vvenc(rcDtParam.org.width != 8, "Invalid size" );
     THROW(" no support");
   }
 
@@ -766,7 +766,7 @@ Distortion RdCost::xGetSSE16( const DistParam &rcDtParam )
 {
   if ( rcDtParam.applyWeight )
   {
-    CHECK( rcDtParam.org.width != 16, "Invalid size" );
+    CHECK_vvenc(rcDtParam.org.width != 16, "Invalid size" );
     THROW(" no support");
   }
 
@@ -1978,7 +1978,7 @@ static Distortion lumaWeightedSSE_Core( const DistParam& rcDtParam, ChromaFormat
 
   // cf, column factor, offset of the second column, to be set to '0' for width of '1'
   const int cf =  1 - ( iCols & 1 );
-  CHECK( ( iCols & 1 ) && iCols != 1, "Width can only be even or equal to '1'!" );
+  CHECK_vvenc((iCols & 1 ) && iCols != 1, "Width can only be even or equal to '1'!" );
   const ComponentID compId = rcDtParam.compID;
   const size_t  cShiftY    = getComponentScaleY(compId, chmFmt);
 
@@ -2012,7 +2012,7 @@ static Distortion fixWeightedSSE_Core( const DistParam& rcDtParam, uint32_t fixe
 
   // cf, column factor, offset of the second column, to be set to '0' for width of '1'
   const int cf =  1 - ( iCols & 1 );
-  CHECK( ( iCols & 1 ) && iCols != 1, "Width can only be even or equal to '1'!" );
+  CHECK_vvenc((iCols & 1 ) && iCols != 1, "Width can only be even or equal to '1'!" );
   
   for( ; iRows != 0; iRows-- )
   {

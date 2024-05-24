@@ -113,7 +113,7 @@ public:
     int rate0 = 2 + ((log2WindowSize >> 2) & 3);
     int rate1 = 3 + rate0 + (log2WindowSize&  3);
     m_rate    = 16 * rate0 + rate1;
-    CHECK(rate1 > 9, "Second window size is too large!");
+    CHECK_vvenc(rate1 > 9, "Second window size is too large!");
   }
   void estFracBitsUpdate(unsigned bin, uint64_t &b)
   {

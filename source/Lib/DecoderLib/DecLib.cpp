@@ -83,7 +83,7 @@ bool tryDecodePicture( Picture* pcEncPic, const int expectedPoc, const std::stri
       ffwdDecoder.bitstreamFile = new std::ifstream( bitstreamFileName.c_str(), std::ifstream::in | std::ifstream::binary );
       ffwdDecoder.bytestream    = new InputByteStream( *ffwdDecoder.bitstreamFile );
 
-      CHECK( !*ffwdDecoder.bitstreamFile, "failed to open bitstream file " << bitstreamFileName.c_str() << " for reading" ) ;
+      CHECK_vvenc(!*ffwdDecoder.bitstreamFile, "failed to open bitstream file " << bitstreamFileName.c_str() << " for reading" ) ;
       // create decoder class
       ffwdDecoder.pcDecLib = new DecLib(msg);
       ffwdDecoder.pcDecLib->create();
@@ -101,7 +101,7 @@ bool tryDecodePicture( Picture* pcEncPic, const int expectedPoc, const std::stri
 
     bool goOn = true;
     DecLib *pcDecLib = ffwdDecoder.pcDecLib;
-    CHECK( pcDecLib == nullptr, "error in setup of decoder lib" );
+    CHECK_vvenc(pcDecLib == nullptr, "error in setup of decoder lib" );
 
     // main decoder loop
     while( !!*ffwdDecoder.bitstreamFile && goOn )
@@ -158,9 +158,9 @@ bool tryDecodePicture( Picture* pcEncPic, const int expectedPoc, const std::stri
                   pcEncPic->cs->createTempBuffers( true );
                   pcEncPic->cs->initStructData( MAX_INT, false, nullptr, true );
 
-                  CHECK( pcEncPic->slices.size() == 0, "at least one slice should be available" );
+                  CHECK_vvenc(pcEncPic->slices.size() == 0, "at least one slice should be available" );
 
-                  CHECK( expectedPoc != poc, "mismatch in POC - check encoder configuration" );
+                  CHECK_vvenc(expectedPoc != poc, "mismatch in POC - check encoder configuration" );
 
                   if( poc != debugPOC )
                   {
@@ -341,7 +341,7 @@ bool tryDecodePicture( Picture* pcEncPic, const int expectedPoc, const std::stri
 
   if( !bRet )
   {
-    CHECK( bDecodeUntilPocFound, " decoding failed - check decodeBitstream2 parameter File: " << bitstreamFileName.c_str() );
+    CHECK_vvenc(bDecodeUntilPocFound, " decoding failed - check decodeBitstream2 parameter File: " << bitstreamFileName.c_str() );
     if( ffwdDecoder.pcDecLib )
     {
       ffwdDecoder.pcDecLib->destroy();
@@ -718,7 +718,7 @@ void DecLib::xCreateLostPicture( int iLostPoc )
   msg.log( VVENC_INFO, "\ninserting lost poc : %d\n",iLostPoc);
   Picture *cFillPic = xGetNewPicBuffer(*(m_parameterSetManager.getFirstSPS()), *(m_parameterSetManager.getFirstPPS()), 0);
 
-  CHECK( !cFillPic->slices.size(), "No slices in picture" );
+  CHECK_vvenc(!cFillPic->slices.size(), "No slices in picture" );
 
   cFillPic->slices[0]->resetSlicePart();
 
@@ -815,7 +815,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
           THROW("APS activation failed!");
         }
 
-        CHECK( aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
+        CHECK_vvenc(aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
         //ToDO: APS NAL unit containing the APS RBSP shall have nuh_layer_id either equal to the nuh_layer_id of a coded slice NAL unit that referrs it, or equal to the nuh_layer_id of a direct dependent layer of the layer containing a coded slice NAL unit that referrs it.
       }
     }
@@ -833,7 +833,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
         THROW("APS activation failed!");
       }
 
-      CHECK( aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
+      CHECK_vvenc(aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
       //ToDO: APS NAL unit containing the APS RBSP shall have nuh_layer_id either equal to the nuh_layer_id of a coded slice NAL unit that referrs it, or equal to the nuh_layer_id of a direct dependent layer of the layer containing a coded slice NAL unit that referrs it.
     }
   }
@@ -860,7 +860,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
         THROW("APS activation failed!");
       }
 
-      CHECK( aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
+      CHECK_vvenc(aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
       //ToDO: APS NAL unit containing the APS RBSP shall have nuh_layer_id either equal to the nuh_layer_id of a coded slice NAL unit that referrs it, or equal to the nuh_layer_id of a direct dependent layer of the layer containing a coded slice NAL unit that referrs it.
 
       filterParam.ccAlfFilterEnabled[COMP_Cb - 1] = true;
@@ -885,7 +885,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
         THROW("APS activation failed!");
       }
 
-      CHECK( aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
+      CHECK_vvenc(aps->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
       //ToDO: APS NAL unit containing the APS RBSP shall have nuh_layer_id either equal to the nuh_layer_id of a coded slice NAL unit that referrs it, or equal to the nuh_layer_id of a direct dependent layer of the layer containing a coded slice NAL unit that referrs it.
 
       filterParam.ccAlfFilterEnabled[COMP_Cr - 1] = true;
@@ -901,7 +901,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
   if (picHeader->lmcsEnabled && lmcsAPS == nullptr)
   {
     lmcsAPS = parameterSetManager.getAPS(picHeader->lmcsApsId, LMCS_APS);
-    CHECK(lmcsAPS == nullptr, "No LMCS APS present");
+    CHECK_vvenc(lmcsAPS == nullptr, "No LMCS APS present");
     if (lmcsAPS)
     {
       parameterSetManager.clearAPSChangedFlag(picHeader->lmcsApsId, LMCS_APS);
@@ -910,7 +910,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
         THROW("LMCS APS activation failed!");
       }
 
-      CHECK( lmcsAPS->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
+      CHECK_vvenc(lmcsAPS->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
       //ToDO: APS NAL unit containing the APS RBSP shall have nuh_layer_id either equal to the nuh_layer_id of a coded slice NAL unit that referrs it, or equal to the nuh_layer_id of a direct dependent layer of the layer containing a coded slice NAL unit that referrs it.
     }
   }
@@ -919,7 +919,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
   if( picHeader->explicitScalingListEnabled && scalingListAPS == nullptr)
   {
     scalingListAPS = parameterSetManager.getAPS( picHeader->scalingListApsId, SCALING_LIST_APS );
-    CHECK( scalingListAPS == nullptr, "No SCALING LIST APS present" );
+    CHECK_vvenc(scalingListAPS == nullptr, "No SCALING LIST APS present" );
     if( scalingListAPS )
     {
       parameterSetManager.clearAPSChangedFlag( picHeader->scalingListApsId, SCALING_LIST_APS );
@@ -928,7 +928,7 @@ void activateAPS(PicHeader* picHeader, Slice* pSlice, ParameterSetManager& param
         THROW( "SCALING LIST APS activation failed!" );
       }
 
-      CHECK( scalingListAPS->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
+      CHECK_vvenc(scalingListAPS->temporalId > pSlice->TLayer, "TemporalId shall be less than or equal to the TemporalId of the coded slice NAL unit" );
       //ToDO: APS NAL unit containing the APS RBSP shall have nuh_layer_id either equal to the nuh_layer_id of a coded slice NAL unit that referrs it, or equal to the nuh_layer_id of a direct dependent layer of the layer containing a coded slice NAL unit that referrs it.
     }
   }
@@ -943,10 +943,10 @@ void DecLib::xActivateParameterSets( const int layerId)
     APS** apss = m_parameterSetManager.getAPSs();
     memset(apss, 0, sizeof(*apss) * ALF_CTB_MAX_NUM_APS);
     const PPS *pps = m_parameterSetManager.getPPS(m_picHeader.ppsId); // this is a temporary PPS object. Do not store this value
-    CHECK(pps == 0, "No PPS present");
+    CHECK_vvenc(pps == 0, "No PPS present");
 
     const SPS *sps = m_parameterSetManager.getSPS(pps->spsId);             // this is a temporary SPS object. Do not store this value
-    CHECK(sps == 0, "No SPS present");
+    CHECK_vvenc(sps == 0, "No SPS present");
 
     const VPS *vps = sps->vpsId ? m_parameterSetManager.getVPS( sps->vpsId ) : nullptr;
 
@@ -996,7 +996,7 @@ void DecLib::xActivateParameterSets( const int layerId)
     if (m_picHeader.lmcsEnabled)
     {
       lmcsAPS = m_parameterSetManager.getAPS(m_picHeader.lmcsApsId, LMCS_APS);
-      CHECK(lmcsAPS == 0, "No LMCS APS present");
+      CHECK_vvenc(lmcsAPS == 0, "No LMCS APS present");
     }
 
     if (lmcsAPS)
@@ -1031,7 +1031,7 @@ void DecLib::xActivateParameterSets( const int layerId)
 
     m_pic->allocateNewSlice();
     // make the slice-pilot a real slice, and set up the slice-pilot for the next slice
-    CHECK(m_pic->slices.size() != (m_uiSliceSegmentIdx + 1), "Invalid number of slices");
+    CHECK_vvenc(m_pic->slices.size() != (m_uiSliceSegmentIdx + 1), "Invalid number of slices");
     m_apcSlicePilot = m_pic->swapSliceObject(m_apcSlicePilot, m_uiSliceSegmentIdx);
 
     // we now have a real slice:
@@ -1090,7 +1090,7 @@ void DecLib::xActivateParameterSets( const int layerId)
   {
     // make the slice-pilot a real slice, and set up the slice-pilot for the next slice
     m_pic->allocateNewSlice();
-    CHECK(m_pic->slices.size() != (size_t)(m_uiSliceSegmentIdx + 1), "Invalid number of slices");
+    CHECK_vvenc(m_pic->slices.size() != (size_t)(m_uiSliceSegmentIdx + 1), "Invalid number of slices");
     m_apcSlicePilot = m_pic->swapSliceObject(m_apcSlicePilot, m_uiSliceSegmentIdx);
 
     Slice* pSlice = m_pic->slices[m_uiSliceSegmentIdx]; // we now have a real slice.
@@ -1176,41 +1176,41 @@ void DecLib::xCheckParameterSetConstraints(const int layerId)
 
 //  CHECK( clvssSPSid[layerId] != pps->spsId, "The value of pps_seq_parameter_set_id shall be the same in all PPSs that are referred to by coded pictures in a CLVS" );
 
-  CHECK(sps->GDR == false && m_picHeader.gdrPic, "When gdr_enabled_flag is equal to 0, the value of gdr_pic_flag shall be equal to 0 ");
+  CHECK_vvenc(sps->GDR == false && m_picHeader.gdrPic, "When gdr_enabled_flag is equal to 0, the value of gdr_pic_flag shall be equal to 0 ");
   if( !sps->weightPred )
   {
-    CHECK( pps->weightPred, "When sps_weighted_pred_flag is equal to 0, the value of pps_weighted_pred_flag shall be equal to 0." );
+    CHECK_vvenc(pps->weightPred, "When sps_weighted_pred_flag is equal to 0, the value of pps_weighted_pred_flag shall be equal to 0." );
   }
 
   if( !sps->weightedBiPred )
   {
-    CHECK( pps->weightedBiPred, "When sps_weighted_bipred_flag is equal to 0, the value of pps_weighted_bipred_flag shall be equal to 0." );
+    CHECK_vvenc(pps->weightedBiPred, "When sps_weighted_bipred_flag is equal to 0, the value of pps_weighted_bipred_flag shall be equal to 0." );
   }
 
   const int minCuSize = 1 << sps->log2MinCodingBlockSize;
-  CHECK( ( pps->picWidthInLumaSamples % ( std::max( 8, minCuSize) ) ) != 0, "Coded frame width must be a multiple of Max(8, the minimum unit size)" );
-  CHECK( ( pps->picHeightInLumaSamples % ( std::max( 8, minCuSize) ) ) != 0, "Coded frame height must be a multiple of Max(8, the minimum unit size)" );
+  CHECK_vvenc((pps->picWidthInLumaSamples % ( std::max(8, minCuSize) ) ) != 0, "Coded frame width must be a multiple of Max(8, the minimum unit size)" );
+  CHECK_vvenc((pps->picHeightInLumaSamples % ( std::max(8, minCuSize) ) ) != 0, "Coded frame height must be a multiple of Max(8, the minimum unit size)" );
   if( !sps->resChangeInClvsEnabled )
   {
-    CHECK( pps->picWidthInLumaSamples != sps->maxPicWidthInLumaSamples, "When res_change_in_clvs_allowed_flag equal to 0, the value of pic_width_in_luma_samples shall be equal to pic_width_max_in_luma_samples." );
-    CHECK( pps->picHeightInLumaSamples != sps->maxPicHeightInLumaSamples, "When res_change_in_clvs_allowed_flag equal to 0, the value of pic_height_in_luma_samples shall be equal to pic_height_max_in_luma_samples." );
+    CHECK_vvenc(pps->picWidthInLumaSamples != sps->maxPicWidthInLumaSamples, "When res_change_in_clvs_allowed_flag equal to 0, the value of pic_width_in_luma_samples shall be equal to pic_width_max_in_luma_samples." );
+    CHECK_vvenc(pps->picHeightInLumaSamples != sps->maxPicHeightInLumaSamples, "When res_change_in_clvs_allowed_flag equal to 0, the value of pic_height_in_luma_samples shall be equal to pic_height_max_in_luma_samples." );
   }
   if( sps->resChangeInClvsEnabled )
   {
-    CHECK( sps->subPicInfoPresent != 0, "When res_change_in_clvs_allowed_flag is equal to 1, the value of subpic_info_present_flag shall be equal to 0." );
+    CHECK_vvenc(sps->subPicInfoPresent != 0, "When res_change_in_clvs_allowed_flag is equal to 1, the value of subpic_info_present_flag shall be equal to 0." );
   }
 
-  CHECK(sps->resChangeInClvsEnabled && sps->virtualBoundariesEnabled, "when the value of res_change_in_clvs_allowed_flag is equal to 1, the value of sps_virtual_boundaries_present_flag shall be equal to 0");
+  CHECK_vvenc(sps->resChangeInClvsEnabled && sps->virtualBoundariesEnabled, "when the value of res_change_in_clvs_allowed_flag is equal to 1, the value of sps_virtual_boundaries_present_flag shall be equal to 0");
 
   if( sps->CTUSize + 2 * ( 1 << sps->log2MinCodingBlockSize ) > pps->picWidthInLumaSamples )
   {
-    CHECK( sps->wrapAroundEnabled, "Wraparound shall be disabled when the value of ( CtbSizeY / MinCbSizeY + 1) is less than or equal to ( pic_width_in_luma_samples / MinCbSizeY - 1 )" );
+    CHECK_vvenc(sps->wrapAroundEnabled, "Wraparound shall be disabled when the value of ( CtbSizeY / MinCbSizeY + 1) is less than or equal to ( pic_width_in_luma_samples / MinCbSizeY - 1 )" );
   }
 
   if( vps != nullptr && vps->numOutputLayersInOls[vps->targetOlsIdx] > 1 )
   {
-    CHECK( sps->maxPicWidthInLumaSamples > vps->olsDpbPicSize[ vps->targetOlsIdx ].width, "pic_width_max_in_luma_samples shall be less than or equal to the value of ols_dpb_pic_width[ i ]" );
-    CHECK( sps->maxPicHeightInLumaSamples > vps->olsDpbPicSize[ vps->targetOlsIdx ].height, "pic_height_max_in_luma_samples shall be less than or equal to the value of ols_dpb_pic_height[ i ]" );
+    CHECK_vvenc(sps->maxPicWidthInLumaSamples > vps->olsDpbPicSize[ vps->targetOlsIdx ].width, "pic_width_max_in_luma_samples shall be less than or equal to the value of ols_dpb_pic_width[ i ]" );
+    CHECK_vvenc(sps->maxPicHeightInLumaSamples > vps->olsDpbPicSize[ vps->targetOlsIdx ].height, "pic_height_max_in_luma_samples shall be less than or equal to the value of ols_dpb_pic_height[ i ]" );
   }
 
   static std::unordered_map<int, int> m_layerChromaFormat;
@@ -1229,8 +1229,8 @@ void DecLib::xCheckParameterSetConstraints(const int layerId)
     }
     else
     {
-      CHECK(m_layerChromaFormat[curLayerIdx] != curLayerChromaFormat, "Different chroma format in the same layer.");
-      CHECK(m_layerBitDepth[curLayerIdx] != curLayerBitDepth, "Different bit-depth in the same layer.");
+      CHECK_vvenc(m_layerChromaFormat[curLayerIdx] != curLayerChromaFormat, "Different chroma format in the same layer.");
+      CHECK_vvenc(m_layerBitDepth[curLayerIdx] != curLayerBitDepth, "Different bit-depth in the same layer.");
     }
 
     for (int i = 0; i < curLayerIdx; i++)
@@ -1238,9 +1238,9 @@ void DecLib::xCheckParameterSetConstraints(const int layerId)
       if (vps->directRefLayer[curLayerIdx][i])
       {
         int refLayerChromaFormat = m_layerChromaFormat[i];
-        CHECK(curLayerChromaFormat != refLayerChromaFormat, "The chroma formats of the current layer and the reference layer are different");
+        CHECK_vvenc(curLayerChromaFormat != refLayerChromaFormat, "The chroma formats of the current layer and the reference layer are different");
         int refLayerBitDepth = m_layerBitDepth[i];
-        CHECK(curLayerBitDepth != refLayerBitDepth, "The bit-depth of the current layer and the reference layer are different");
+        CHECK_vvenc(curLayerBitDepth != refLayerBitDepth, "The bit-depth of the current layer and the reference layer are different");
       }
     }
   }
@@ -1248,7 +1248,7 @@ void DecLib::xCheckParameterSetConstraints(const int layerId)
   if (sps->profileTierLevel.constraintInfo.oneTilePerPicConstraintFlag)
   {
    // CHECK( pps->numTiles != 1, "When one_tile_per_pic_constraint_flag is equal to 1, each picture shall contain only one tile");
-    CHECK( pps->numSlicesInPic != 0, "When one_slice_per_pic_constraint_flag is equal to 1, each picture shall contain only one slice");
+    CHECK_vvenc(pps->numSlicesInPic != 0, "When one_slice_per_pic_constraint_flag is equal to 1, each picture shall contain only one slice");
   }
 }
 
@@ -1305,9 +1305,9 @@ bool DecLib::xDecodeSlice(InputNALUnit &nalu, int& iSkipFrame, int iPOCLastDispl
   m_HLSReader.parseSliceHeader( m_apcSlicePilot, &m_picHeader, &m_parameterSetManager, m_prevTid0POC );
 
   PPS *pps = m_parameterSetManager.getPPS(m_picHeader.ppsId);
-  CHECK(pps == 0, "No PPS present");
+  CHECK_vvenc(pps == 0, "No PPS present");
   SPS *sps = m_parameterSetManager.getSPS(pps->spsId);
-  CHECK(sps == 0, "No SPS present");
+  CHECK_vvenc(sps == 0, "No SPS present");
   VPS *vps = m_parameterSetManager.getVPS(sps->vpsId);
 
   int currSubPicIdx = pps->getSubPicIdxFromSubPicId( m_apcSlicePilot->sliceSubPicId );
@@ -1327,10 +1327,10 @@ bool DecLib::xDecodeSlice(InputNALUnit &nalu, int& iSkipFrame, int iPOCLastDispl
   }
   if ((sps->vpsId== 0) && (m_prevLayerID != MAX_INT))
   {
-    CHECK(m_prevLayerID != nalu.m_nuhLayerId, "All VCL NAL unit in the CVS shall have the same value of nuh_layer_id "
+    CHECK_vvenc(m_prevLayerID != nalu.m_nuhLayerId, "All VCL NAL unit in the CVS shall have the same value of nuh_layer_id "
                                               "when sps_video_parameter_set_id is equal to 0");
   }
-  CHECK((sps->vpsId > 0) && (vps == 0), "Invalid VPS");
+  CHECK_vvenc((sps->vpsId > 0) && (vps == 0), "Invalid VPS");
   if (vps != nullptr && (vps->independentLayer[nalu.m_nuhLayerId] == 0))
   {
     bool pocIsSet = false;
@@ -1408,7 +1408,7 @@ bool DecLib::xDecodeSlice(InputNALUnit &nalu, int& iSkipFrame, int iPOCLastDispl
   if (sps->vpsId > 0)
   {
     VPS *vps = m_parameterSetManager.getVPS(sps->vpsId);
-    CHECK(vps == 0, "No VPS present");
+    CHECK_vvenc(vps == 0, "No VPS present");
     if ((vps->olsModeIdc == 0 && vps->generalLayerIdx[nalu.m_nuhLayerId] < (vps->maxLayers - 1) && vps->olsOutputLayer[vps->targetOlsIdx][ vps->maxLayers - 1]) || (vps->olsModeIdc == 2 && !vps->olsOutputLayer[vps->targetOlsIdx][vps->generalLayerIdx[nalu.m_nuhLayerId]]))
     {
       m_picHeader.picOutputFlag = (false);
@@ -1624,7 +1624,7 @@ void DecLib::xDecodeDCI( InputNALUnit& nalu )
   DCI* dci = new DCI();
   m_HLSReader.setBitstream( &nalu.getBitstream() );
 
-  CHECK( nalu.m_temporalId, "The value of TemporalId of DCI NAL units shall be equal to 0" );
+  CHECK_vvenc(nalu.m_temporalId, "The value of TemporalId of DCI NAL units shall be equal to 0" );
 
   m_HLSReader.parseDCI( dci );
   m_parameterSetManager.storeDCI( dci, nalu.getBitstream().getFifo() );
@@ -1635,7 +1635,7 @@ void DecLib::xDecodeSPS( InputNALUnit& nalu )
   SPS* sps = new SPS();
   m_HLSReader.setBitstream( &nalu.getBitstream() );
 
-  CHECK( nalu.m_temporalId, "The value of TemporalId of SPS NAL units shall be equal to 0" );
+  CHECK_vvenc(nalu.m_temporalId, "The value of TemporalId of SPS NAL units shall be equal to 0" );
 
   m_HLSReader.parseSPS( sps );
 
@@ -1845,26 +1845,26 @@ void DecLib::xCheckNalUnitConstraintFlags( const ConstraintInfo *cInfo, uint32_t
 {
   if (cInfo != NULL)
   {
-    CHECK(cInfo->noTrailConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_TRAIL,
-      "Non-conforming bitstream. no_trail_constraint_flag is equal to 1 but bitstream contains NAL unit of type TRAIL_NUT.");
-    CHECK(cInfo->noStsaConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_STSA,
-      "Non-conforming bitstream. no_stsa_constraint_flag is equal to 1 but bitstream contains NAL unit of type STSA_NUT.");
-    CHECK(cInfo->noRaslConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_RASL,
-      "Non-conforming bitstream. no_rasl_constraint_flag is equal to 1 but bitstream contains NAL unit of type RASL_NUT.");
-    CHECK(cInfo->noRadlConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_RADL,
-      "Non-conforming bitstream. no_radl_constraint_flag is equal to 1 but bitstream contains NAL unit of type RADL_NUT.");
-    CHECK(cInfo->noIdrConstraintFlag && (naluType == VVENC_NAL_UNIT_CODED_SLICE_IDR_W_RADL),
-      "Non-conforming bitstream. no_idr_constraint_flag is equal to 1 but bitstream contains NAL unit of type IDR_W_RADL.");
-    CHECK(cInfo->noIdrConstraintFlag && (naluType == VVENC_NAL_UNIT_CODED_SLICE_IDR_N_LP),
-      "Non-conforming bitstream. no_idr_constraint_flag is equal to 1 but bitstream contains NAL unit of type IDR_N_LP.");
-    CHECK(cInfo->noCraConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_CRA,
-      "Non-conforming bitstream. no_cra_constraint_flag is equal to 1 but bitstream contains NAL unit of type CRA_NUT.");
-    CHECK(cInfo->noGdrConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_GDR,
-      "Non-conforming bitstream. no_gdr_constraint_flag is equal to 1 but bitstream contains NAL unit of type GDR_NUT.");
-    CHECK(cInfo->noApsConstraintFlag && naluType == VVENC_NAL_UNIT_PREFIX_APS,
-      "Non-conforming bitstream. no_aps_constraint_flag is equal to 1 but bitstream contains NAL unit of type APS_PREFIX_NUT.");
-    CHECK(cInfo->noApsConstraintFlag && naluType == VVENC_NAL_UNIT_SUFFIX_APS,
-      "Non-conforming bitstream. no_aps_constraint_flag is equal to 1 but bitstream contains NAL unit of type APS_SUFFIX_NUT.");
+    CHECK_vvenc(cInfo->noTrailConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_TRAIL,
+                "Non-conforming bitstream. no_trail_constraint_flag is equal to 1 but bitstream contains NAL unit of type TRAIL_NUT.");
+    CHECK_vvenc(cInfo->noStsaConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_STSA,
+                "Non-conforming bitstream. no_stsa_constraint_flag is equal to 1 but bitstream contains NAL unit of type STSA_NUT.");
+    CHECK_vvenc(cInfo->noRaslConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_RASL,
+                "Non-conforming bitstream. no_rasl_constraint_flag is equal to 1 but bitstream contains NAL unit of type RASL_NUT.");
+    CHECK_vvenc(cInfo->noRadlConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_RADL,
+                "Non-conforming bitstream. no_radl_constraint_flag is equal to 1 but bitstream contains NAL unit of type RADL_NUT.");
+    CHECK_vvenc(cInfo->noIdrConstraintFlag && (naluType == VVENC_NAL_UNIT_CODED_SLICE_IDR_W_RADL),
+                "Non-conforming bitstream. no_idr_constraint_flag is equal to 1 but bitstream contains NAL unit of type IDR_W_RADL.");
+    CHECK_vvenc(cInfo->noIdrConstraintFlag && (naluType == VVENC_NAL_UNIT_CODED_SLICE_IDR_N_LP),
+                "Non-conforming bitstream. no_idr_constraint_flag is equal to 1 but bitstream contains NAL unit of type IDR_N_LP.");
+    CHECK_vvenc(cInfo->noCraConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_CRA,
+                "Non-conforming bitstream. no_cra_constraint_flag is equal to 1 but bitstream contains NAL unit of type CRA_NUT.");
+    CHECK_vvenc(cInfo->noGdrConstraintFlag && naluType == VVENC_NAL_UNIT_CODED_SLICE_GDR,
+                "Non-conforming bitstream. no_gdr_constraint_flag is equal to 1 but bitstream contains NAL unit of type GDR_NUT.");
+    CHECK_vvenc(cInfo->noApsConstraintFlag && naluType == VVENC_NAL_UNIT_PREFIX_APS,
+                "Non-conforming bitstream. no_aps_constraint_flag is equal to 1 but bitstream contains NAL unit of type APS_PREFIX_NUT.");
+    CHECK_vvenc(cInfo->noApsConstraintFlag && naluType == VVENC_NAL_UNIT_SUFFIX_APS,
+                "Non-conforming bitstream. no_aps_constraint_flag is equal to 1 but bitstream contains NAL unit of type APS_SUFFIX_NUT.");
   }
 }
 

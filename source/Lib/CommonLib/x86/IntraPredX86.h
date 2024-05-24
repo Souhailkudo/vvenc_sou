@@ -470,7 +470,7 @@ void  IntraPredSampleFilter_SIMD(PelBuf& dstBuf, const CPelBuf& Src)
   const ptrdiff_t  srcStride=Src.stride;
 
   const int scale = ((floorLog2(iWidth * iHeight) - 2) >> 2);
-  CHECK(scale < 0 || scale > 31, "PDPC: scale < 0 || scale > 2");
+  CHECK_vvenc(scale < 0 || scale > 31, "PDPC: scale < 0 || scale > 2");
 
 #if USE_AVX2
   if( W > 8 )
@@ -590,7 +590,7 @@ void  IntraPredSampleFilter_SIMD(PelBuf& dstBuf, const CPelBuf& Src)
     __m128i tmplo8,tmphi8;
     __m128i w32_8 = _mm_set_epi32(32,32,32,32);
     __m128i wl8start,wl8start2;
-    CHECK(scale < 0 || scale > 2, "PDPC: scale < 0 || scale > 2");
+    CHECK_vvenc(scale < 0 || scale > 2, "PDPC: scale < 0 || scale > 2");
 
     wl8start = _mm_set_epi16(0,0,0,0,0,2,8,32);
     wl8start2 = _mm_set_epi16(0,0,0,0,0,0,0,0);

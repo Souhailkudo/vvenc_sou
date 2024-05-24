@@ -117,7 +117,7 @@ void setArbitraryWppPattern( const PreCalcValues& pcv, std::vector<int>& ctuAddr
     }
     x = x_in_line[y];
 
-    CHECK( y >= pcv.heightInCtus, "Height in CTUs is exceeded" );
+    CHECK_vvenc(y >= pcv.heightInCtus, "Height in CTUs is exceeded" );
   }
 }
 
@@ -316,7 +316,7 @@ void EncSlice::initPic( Picture* pic )
     // therefore ensure that numCtuDelayLUT CTU's have been enocded first
     // assuming IBC localSearchRangeX / Y = 128
     const int numCtuDelayLUT[ 3 ] = { 15, 3, 1 };
-    CHECK( pic->cs->pcv->maxCUSizeLog2 < 5 || pic->cs->pcv->maxCUSizeLog2 > 7, "invalid max CTUSize" );
+    CHECK_vvenc(pic->cs->pcv->maxCUSizeLog2 < 5 || pic->cs->pcv->maxCUSizeLog2 > 7, "invalid max CTUSize" );
     m_ctuEncDelay = numCtuDelayLUT[ pic->cs->pcv->maxCUSizeLog2 - 5 ];
   }
 }
@@ -622,7 +622,7 @@ class CtuTsIterator : public std::iterator<std::forward_iterator_tag, int>
       const int endSliceRsRow   = (m_endTsAddr - 1) / pcv.widthInCtus;
       const int endSliceRsCol   = (m_endTsAddr - 1) % pcv.widthInCtus;
             int ctuTsAddr = _tsAddr;
-      CHECK( ctuTsAddr > m_endTsAddr, "error: array index out of bounds" );
+      CHECK_vvenc(ctuTsAddr > m_endTsAddr, "error: array index out of bounds" );
       while( ctuTsAddr < m_endTsAddr )
       {
         ctuTsAddr++;
@@ -708,7 +708,7 @@ void EncSlice::finishCompressSlice( Picture* pic, Slice& slice )
     saoDisabledRate( cs, &m_saoReconParams[ 0 ] );
 
     // set slice header flags
-    CHECK( m_saoEnabled[ COMP_Cb ] != m_saoEnabled[ COMP_Cr ], "Unspecified error");
+    CHECK_vvenc(m_saoEnabled[ COMP_Cb ] != m_saoEnabled[ COMP_Cr ], "Unspecified error");
     for( auto s : pic->slices )
     {
       s->saoEnabled[ CH_L ] = m_saoEnabled[ COMP_Y  ];
@@ -792,7 +792,7 @@ void EncSlice::xProcessCtus( Picture* pic, const unsigned startCtuTsAddr, const 
   //  }
   //}
 
-  CHECK( idx != pcv.sizeInCtus, "array index out of bounds" );
+  CHECK_vvenc(idx != pcv.sizeInCtus, "array index out of bounds" );
 
   // process ctu's until last ctu is done
   if( m_pcEncCfg->m_numThreads > 0 )
@@ -1132,7 +1132,7 @@ bool EncSlice::xProcessCtuTask( int threadIdx, CtuEncParam* ctuEncParam )
 
     case ALF_DERIVE_FILTER:
       {
-        CHECK( ctuRsAddr != pcv.sizeInCtus - 1, "invalid state, derive alf filter only once for last ctu" );
+        CHECK_vvenc(ctuRsAddr != pcv.sizeInCtus - 1, "invalid state, derive alf filter only once for last ctu" );
 
         // ensure statistics from all previous ctu's have been collected
         if( processStates[ctuRsAddr] <= ALF_GET_STATISTICS )
@@ -1230,7 +1230,7 @@ bool EncSlice::xProcessCtuTask( int threadIdx, CtuEncParam* ctuEncParam )
 
     case CCALF_DERIVE_FILTER:
       {
-        CHECK( ctuRsAddr != pcv.sizeInCtus - 1, "invalid state, derive alf filter only once for last ctu" );
+        CHECK_vvenc(ctuRsAddr != pcv.sizeInCtus - 1, "invalid state, derive alf filter only once for last ctu" );
 
         if( processStates[ctuRsAddr] != CCALF_DERIVE_FILTER )
           return false;
@@ -1301,7 +1301,7 @@ bool EncSlice::xProcessCtuTask( int threadIdx, CtuEncParam* ctuEncParam )
 
     case FINISH_SLICE:
       {
-        CHECK( ctuRsAddr != pcv.sizeInCtus - 1, "invalid state, finish slice only once for last ctu" );
+        CHECK_vvenc(ctuRsAddr != pcv.sizeInCtus - 1, "invalid state, finish slice only once for last ctu" );
 
         // ensure all coding tasks have been done for all previous ctu's
         for( int i = 0; i < ctuRsAddr; i++ )
@@ -1319,11 +1319,11 @@ bool EncSlice::xProcessCtuTask( int threadIdx, CtuEncParam* ctuEncParam )
       }
 
     case PROCESS_DONE:
-      CHECK( true, "process state is PROCESS_DONE, but thread is still running" );
+      CHECK_vvenc(true, "process state is PROCESS_DONE, but thread is still running" );
       return true;
 
     default:
-      CHECK( true, "unknown process state" );
+      CHECK_vvenc(true, "unknown process state" );
       return true;
   }
 
@@ -1372,7 +1372,7 @@ void EncSlice::encodeSliceData( Picture* pic )
 
     const Position pos (ctuXPosInCtus * pcv.maxCUSize, ctuYPosInCtus * pcv.maxCUSize);
     const UnitArea ctuArea (cs.area.chromaFormat, Area(pos.x, pos.y, pcv.maxCUSize, pcv.maxCUSize));
-    CHECK( uiSubStrm >= numSubstreams, "array index out of bounds" );
+    CHECK_vvenc(uiSubStrm >= numSubstreams, "array index out of bounds" );
     m_CABACWriter.initBitstream( &substreamsOut[ uiSubStrm ] );
 
     // set up CABAC contexts' state for this CTU

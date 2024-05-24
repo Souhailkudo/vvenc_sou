@@ -131,9 +131,9 @@ static inline void xBilinearFilter( Pel* srcP, Pel* srcQ, ptrdiff_t offset, int 
 
 void xFilteringPandQCore( Pel* src, ptrdiff_t step, const ptrdiff_t offset, int numberPSide, int numberQSide, int tc )
 {
-  CHECK( numberPSide <= 3 && numberQSide <= 3, "Short filtering in long filtering function" );
-  CHECK( numberPSide != 3 && numberPSide != 5 && numberPSide != 7, "invalid numberPSide" );
-  CHECK( numberQSide != 3 && numberQSide != 5 && numberQSide != 7, "invalid numberQSide" );
+  CHECK_vvenc(numberPSide <= 3 && numberQSide <= 3, "Short filtering in long filtering function" );
+  CHECK_vvenc(numberPSide != 3 && numberPSide != 5 && numberPSide != 7, "invalid numberPSide" );
+  CHECK_vvenc(numberQSide != 3 && numberQSide != 5 && numberQSide != 7, "invalid numberQSide" );
 
   const int*       dbCoeffsP    = numberPSide == 7 ? dbCoeffs7 : ( numberPSide == 5 ) ? dbCoeffs5 : dbCoeffs3;
   const int*       dbCoeffsQ    = numberQSide == 7 ? dbCoeffs7 : ( numberQSide == 5 ) ? dbCoeffs5 : dbCoeffs3;
@@ -716,8 +716,8 @@ void LoopFilter::calcFilterStrengths( const CodingUnit& cu, bool clearLF )
                                                                             horVirBndryPos, verVirBndryPos );
   if( isCuCrossedByVirtualBoundaries )
   {
-    CHECK( numHorVirBndry >= (int)( sizeof(horVirBndryPos) / sizeof(horVirBndryPos[0]) ), "Too many virtual boundaries" );
-    CHECK( numHorVirBndry >= (int)( sizeof(verVirBndryPos) / sizeof(verVirBndryPos[0]) ), "Too many virtual boundaries" );
+    CHECK_vvenc(numHorVirBndry >= (int)(sizeof(horVirBndryPos) / sizeof(horVirBndryPos[0]) ), "Too many virtual boundaries" );
+    CHECK_vvenc(numHorVirBndry >= (int)(sizeof(verVirBndryPos) / sizeof(verVirBndryPos[0]) ), "Too many virtual boundaries" );
   }
   
 
@@ -754,7 +754,7 @@ void LoopFilter::calcFilterStrengths( const CodingUnit& cu, bool clearLF )
 
   if( ( cu.mergeFlag && cu.mergeType == MRG_TYPE_SUBPU_ATMVP ) || cu.affine )
   {
-    CHECK( cu.chType != CH_L, "This path is only valid for single tree blocks!" );
+    CHECK_vvenc(cu.chType != CH_L, "This path is only valid for single tree blocks!" );
 
     for( int off = subBlockSize; off < area.width; off += subBlockSize )
     {
@@ -1366,8 +1366,8 @@ void xGetBoundaryStrengthSingle( LoopFilterParam& lfp, const CodingUnit& cuQ, co
   }
 
   // pcSlice->isInterP()
-  CHECK( CU::isInter( cuP ) && 0 > miP.refIdx[0], "Invalid reference picture list index" );
-  CHECK( CU::isInter( cuP ) && 0 > miQ.refIdx[0], "Invalid reference picture list index" );
+  CHECK_vvenc(CU::isInter(cuP ) && 0 > miP.refIdx[0], "Invalid reference picture list index" );
+  CHECK_vvenc(CU::isInter(cuP ) && 0 > miQ.refIdx[0], "Invalid reference picture list index" );
 
   const Picture *piRefP0 = ( CU::isIBC( cuP ) ? sliceP.pic : sliceP.getRefPic( REF_PIC_LIST_0, miP.refIdx[0] ) );
   const Picture *piRefQ0 = ( CU::isIBC( cuQ ) ? sliceQ.pic : sliceQ.getRefPic( REF_PIC_LIST_0, miQ.refIdx[0] ) );
@@ -1533,7 +1533,7 @@ void LoopFilter::xEdgeFilterLuma( const CodingStructure& cs, const Position& pos
 
   const unsigned uiBs = BsGet( lfp.bs, COMP_Y );
 
-  CHECK( uiBs > 2, "baem0" );
+  CHECK_vvenc(uiBs > 2, "baem0" );
   
   if( !uiBs )
   {
@@ -1677,8 +1677,8 @@ void LoopFilter::xEdgeFilterChroma( const CodingStructure &cs, const Position &p
   bS[0] = BsGet( tmpBs, COMP_Cb );
   bS[1] = BsGet( tmpBs, COMP_Cr );
 
-  CHECK( bS[0] > 2, "baem1" );
-  CHECK( bS[1] > 2, "baem2" );
+  CHECK_vvenc(bS[0] > 2, "baem1" );
+  CHECK_vvenc(bS[1] > 2, "baem2" );
 
   if( bS[0] <= 0 && bS[1] <= 0 )
   {

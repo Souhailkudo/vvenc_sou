@@ -499,7 +499,7 @@ void AdaptiveLoopFilter::reconstructCoeffAPSs(CodingStructure& cs, bool luma, bo
     {
       int apsIdx = cs.slice->lumaApsId[i];
       curAPS = aps[apsIdx];
-      CHECK(curAPS == NULL, "invalid APS");
+      CHECK_vvenc(curAPS == NULL, "invalid APS");
       alfParamTmp = curAPS->alfParam;
       reconstructCoeff(alfParamTmp, CH_L, isRdo, true);
       memcpy(m_coeffApsLuma[i], m_coeffFinal, sizeof(m_coeffFinal));
@@ -554,7 +554,7 @@ void AdaptiveLoopFilter::reconstructCoeff( AlfParam& alfParam, ChannelType chann
     {
       int filterIdx = alfParam.filterCoeffDeltaIdx[classIdx];
 
-      CHECK(!(filterIdx >= 0 && filterIdx < alfParam.numLumaFilters), "Bad coeff delta idx in ALF");
+      CHECK_vvenc(!(filterIdx >= 0 && filterIdx < alfParam.numLumaFilters), "Bad coeff delta idx in ALF");
       for (int coeffIdx = 0; coeffIdx < numCoeffMinus1; ++coeffIdx)
       {
         m_coeffFinal[classIdx * MAX_NUM_ALF_LUMA_COEFF + coeffIdx] = coeff[filterIdx * MAX_NUM_ALF_LUMA_COEFF + coeffIdx];
@@ -564,7 +564,7 @@ void AdaptiveLoopFilter::reconstructCoeff( AlfParam& alfParam, ChannelType chann
       for( int coeffIdx = 0; coeffIdx < numCoeffMinus1; ++coeffIdx )
       {
         int clipIdx = alfParam.nonLinearFlag[channel] ? clipp[filterIdx * MAX_NUM_ALF_LUMA_COEFF + coeffIdx] : 0;
-        CHECK(!(clipIdx >= 0 && clipIdx < MaxAlfNumClippingValues), "Bad clip idx in ALF");
+        CHECK_vvenc(!(clipIdx >= 0 && clipIdx < MaxAlfNumClippingValues), "Bad clip idx in ALF");
         m_clippFinal[classIdx * MAX_NUM_ALF_LUMA_COEFF + coeffIdx] = isRdo ? clipIdx : m_alfClippingValues[channel][clipIdx];
       }
       m_clippFinal[classIdx* MAX_NUM_ALF_LUMA_COEFF + numCoeffMinus1] =
@@ -704,7 +704,7 @@ void AdaptiveLoopFilter::deriveClassificationBlk( AlfClassifier *classifier,
                                                  const CPelBuf &srcLuma, const Area &blkDst, const Area &blk,
                                                  const int shift, const int vbCTUHeight, int vbPos )
 {
-  CHECK((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
+  CHECK_vvenc((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
 
   const int th[16] = { 0, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4 };
   const int stride = srcLuma.stride;
@@ -920,12 +920,12 @@ void AdaptiveLoopFilter::filterBlk( const AlfClassifier *classifier,
                                     const int vbCTUHeight,
                                     int vbPos)
 {
-  CHECK((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
+  CHECK_vvenc((vbCTUHeight & (vbCTUHeight - 1)) != 0, "vbCTUHeight must be a power of 2");
 
   const bool bChroma = isChroma( compId );
   if( bChroma )
   {
-    CHECK( filtType != 0, "Chroma needs to have filtType == 0" );
+    CHECK_vvenc(filtType != 0, "Chroma needs to have filtType == 0" );
   }
 
   const CPelBuf srcLuma = recSrc.get( compId );
@@ -957,10 +957,10 @@ void AdaptiveLoopFilter::filterBlk( const AlfClassifier *classifier,
   const int clsSizeX = 4;
 
 
-  CHECK( startHeight % clsSizeY, "Wrong startHeight in filtering" );
-  CHECK( startWidth % clsSizeX, "Wrong startWidth in filtering" );
-  CHECK( ( endHeight - startHeight ) % clsSizeY, "Wrong endHeight in filtering" );
-  CHECK( ( endWidth - startWidth ) % clsSizeX, "Wrong endWidth in filtering" );
+  CHECK_vvenc(startHeight % clsSizeY, "Wrong startHeight in filtering" );
+  CHECK_vvenc(startWidth % clsSizeX, "Wrong startWidth in filtering" );
+  CHECK_vvenc((endHeight - startHeight ) % clsSizeY, "Wrong endHeight in filtering" );
+  CHECK_vvenc((endWidth - startWidth ) % clsSizeX, "Wrong endWidth in filtering" );
 
 
   int dstStride2 = dstStride * clsSizeY;
@@ -1149,9 +1149,9 @@ void AdaptiveLoopFilter::filterBlkCcAlf(const PelBuf &dstBuf, const CPelUnitBuf 
                                         const Area &blkSrc, const ComponentID compId, const int16_t *filterCoeff,
                                         const ClpRngs &clpRngs, CodingStructure &cs, int vbCTUHeight, int vbPos)
 {
-  CHECK(1 << floorLog2(vbCTUHeight) != vbCTUHeight, "Not a power of 2");
+  CHECK_vvenc(1 << floorLog2(vbCTUHeight) != vbCTUHeight, "Not a power of 2");
 
-  CHECK(!isChroma(compId), "Must be chroma");
+  CHECK_vvenc(!isChroma(compId), "Must be chroma");
 
   const SPS*     sps           = cs.slice->sps;
   ChromaFormat nChromaFormat   = sps->chromaFormatIdc;
@@ -1164,10 +1164,10 @@ void AdaptiveLoopFilter::filterBlkCcAlf(const PelBuf &dstBuf, const CPelUnitBuf 
   const int scaleX             = getComponentScaleX(compId, nChromaFormat);
   const int scaleY             = getComponentScaleY(compId, nChromaFormat);
 
-  CHECK( startHeight % clsSizeY, "Wrong startHeight in filtering" );
-  CHECK( startWidth % clsSizeX, "Wrong startWidth in filtering" );
-  CHECK( ( endHeight - startHeight ) % clsSizeY, "Wrong endHeight in filtering" );
-  CHECK( ( endWidth - startWidth ) % clsSizeX, "Wrong endWidth in filtering" );
+  CHECK_vvenc(startHeight % clsSizeY, "Wrong startHeight in filtering" );
+  CHECK_vvenc(startWidth % clsSizeX, "Wrong startWidth in filtering" );
+  CHECK_vvenc((endHeight - startHeight ) % clsSizeY, "Wrong endHeight in filtering" );
+  CHECK_vvenc((endWidth - startWidth ) % clsSizeX, "Wrong endWidth in filtering" );
 
   CPelBuf     srcBuf     = recSrc.get(COMP_Y);
   const int   lumaStride = srcBuf.stride;

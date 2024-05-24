@@ -247,7 +247,7 @@ namespace DQIntern
             }
             for( int k = 0; k < num; k++ )
             {
-              CHECK( sId2NbSbb[begSbb + inPos[k]].numInv >= 5, "" );
+              CHECK_vvenc(sId2NbSbb[begSbb + inPos[k]].numInv >= 5, "" );
               sId2NbSbb[begSbb + inPos[k]].invInPos[sId2NbSbb[begSbb + inPos[k]].numInv++] = scanId & ( groupSize - 1 );
             }
           }
@@ -302,7 +302,7 @@ namespace DQIntern
           const int  begSbb = scanId - ( scanId & (groupSize-1) ); // first pos in current subblock
           for( int k = 0; k < nbOut.num; k++ )
           {
-            CHECK(begSbb > nbOut.outPos[k], "Position must be past sub block begin");
+            CHECK_vvenc(begSbb > nbOut.outPos[k], "Position must be past sub block begin");
             nbOut.outPos[k] -= begSbb;
           }
           nbOut.maxDist -= scanId;
@@ -1162,7 +1162,7 @@ namespace DQIntern
       const State* prvState = 0;
       if( decision.prevId  >= 4 )
       {
-        CHECK( decision.absLevel != 0, "cannot happen" );
+        CHECK_vvenc(decision.absLevel != 0, "cannot happen" );
         prvState    = skipStates + ( decision.prevId - 4 );
         m_numSigSbb = 0;
         ::memset( m_sbb.absLevels, 0, sizeof( m_sbb.absLevels ) );
@@ -1607,7 +1607,7 @@ namespace DQIntern
 DepQuant::DepQuant( const Quant* other, bool enc, bool useScalingLists ) : QuantRDOQ2( other, useScalingLists )
 {
   const DepQuant* dq = dynamic_cast<const DepQuant*>( other );
-  CHECK( other && !dq, "The DepQuant cast must be successfull!" );
+  CHECK_vvenc(other && !dq, "The DepQuant cast must be successfull!" );
   p = new DQIntern::DepQuant( enc );
 }
 
@@ -1628,7 +1628,7 @@ void DepQuant::quant( TransformUnit& tu, const ComponentID compID, const CCoeffB
     const int         width           = rect.width;
     const int         height          = rect.height;
     uint32_t          scalingListType = getScalingListType(tu.cu->predMode, compID);
-    CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+    CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
     const uint32_t    log2TrWidth     = Log2(width);
     const uint32_t    log2TrHeight    = Log2(height);
     const bool isLfnstApplied         = tu.cu->lfnstIdx > 0 && (CU::isSepTree(*tu.cu) ? true : isLuma(compID));
@@ -1652,7 +1652,7 @@ void DepQuant::dequant( const TransformUnit& tu, CoeffBuf& dstCoeff, const Compo
     const int         width           = rect.width;
     const int         height          = rect.height;
     uint32_t          scalingListType = getScalingListType(tu.cu->predMode, compID);
-    CHECK(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
+    CHECK_vvenc(scalingListType >= SCALING_LIST_NUM, "Invalid scaling list");
     const uint32_t    log2TrWidth    = Log2(width);
     const uint32_t    log2TrHeight   = Log2(height);
     const bool isLfnstApplied        = tu.cu->lfnstIdx > 0 && (CU::isSepTree(*tu.cu) ? true : isLuma(compID));

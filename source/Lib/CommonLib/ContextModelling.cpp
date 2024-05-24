@@ -226,7 +226,7 @@ void DeriveCtx::CtxSplit( const Partitioner& partitioner, unsigned& ctxSpl, unsi
 
 void MergeCtx::setMergeInfo( CodingUnit& cu, int candIdx ) const
 {
-  CHECK( candIdx >= numValidMergeCand, "Merge candidate does not exist" );
+  CHECK_vvenc(candIdx >= numValidMergeCand, "Merge candidate does not exist" );
   cu.regularMergeFlag           = !(cu.ciip || cu.geo);
   cu.mergeFlag                  = true;
   cu.mmvdMergeFlag              = false;

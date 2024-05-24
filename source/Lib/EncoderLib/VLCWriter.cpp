@@ -132,7 +132,7 @@ void VLCWriter::xWriteSCode    ( int code, uint32_t length )
 
 void VLCWriter::xWriteCode     ( uint32_t uiCode, uint32_t uiLength )
 {
-  CHECK( uiLength == 0, "Code of length '0' not supported" );
+  CHECK_vvenc(uiLength == 0, "Code of length '0' not supported" );
   m_pcBitIf->write( uiCode, uiLength );
 }
 
@@ -141,7 +141,7 @@ void VLCWriter::xWriteUvlc     ( uint32_t uiCode )
   uint32_t uiLength = 1;
   uint32_t uiTemp = ++uiCode;
 
-  CHECK( !uiTemp, "Integer overflow" );
+  CHECK_vvenc(!uiTemp, "Integer overflow" );
 
   while( 1 != uiTemp )
   {
@@ -173,14 +173,14 @@ void VLCWriter::xWriteRbspTrailingBits()
     WRITE_FLAG( 0, "rbsp_alignment_zero_bit");
     cnt++;
   }
-  CHECK(cnt>=8, "More than '8' alignment bytes read");
+  CHECK_vvenc(cnt >= 8, "More than '8' alignment bytes read");
 }
 
 void HLSWriter::codeAUD(const int audIrapOrGdrAuFlag, const int pictureType)
 {
   DTRACE( g_trace_ctx, D_HEADER, "=========== Access Unit Delimiter ===========\n" );
 
-  CHECK(pictureType >= 3, "Invalid picture type");
+  CHECK_vvenc(pictureType >= 3, "Invalid picture type");
   WRITE_FLAG(audIrapOrGdrAuFlag, "aud_irap_or_gdr_au_flag");
   WRITE_CODE(pictureType, 3, "pic_type");
   xWriteRbspTrailingBits();
@@ -206,7 +206,7 @@ void HLSWriter::xCodeRefPicList( const ReferencePictureList* rpl, bool isLongTer
 
       if( rpl->isInterLayerRefPic[ii] )
       {
-        CHECK( rpl->interLayerRefPicIdx[ii] < 0, "Wrong inter-layer reference index" );
+        CHECK_vvenc(rpl->interLayerRefPicIdx[ii] < 0, "Wrong inter-layer reference index" );
         WRITE_UVLC( rpl->interLayerRefPicIdx[ii], "ilrp_idx[ listIdx ][ rplsIdx ][ i ]" );
       }
     }
@@ -232,7 +232,7 @@ void HLSWriter::xCodeRefPicList( const ReferencePictureList* rpl, bool isLongTer
         unsigned int absDeltaValue = (deltaValue < 0) ? 0 - deltaValue : deltaValue;
         if( isForbiddenZeroDeltaPoc || ii == 0 )
         {
-          CHECK( !absDeltaValue, "Zero delta POC is not used without WP" );
+          CHECK_vvenc(!absDeltaValue, "Zero delta POC is not used without WP" );
           WRITE_UVLC( absDeltaValue - 1, "abs_delta_poc_st[ listIdx ][ rplsIdx ][ i ]" );
         }
         else
@@ -300,7 +300,7 @@ void HLSWriter::codePPS( const PPS* pcPPS, const SPS* pcSPS )
     }
     WRITE_UVLC( pcPPS->subPicIdLen - 1,               "pps_subpic_id_len_minus1" );
 
-    CHECK((1 << pcPPS->subPicIdLen) < pcPPS->numSubPics, "pps_subpic_id_len exceeds valid range");
+    CHECK_vvenc((1 << pcPPS->subPicIdLen) < pcPPS->numSubPics, "pps_subpic_id_len exceeds valid range");
     for( int picIdx = 0; picIdx < pcPPS->numSubPics; picIdx++ )
     {
       WRITE_CODE( pcPPS->subPicId[picIdx], pcPPS->subPicIdLen, "pps_subpic_id[i]" );
@@ -333,7 +333,7 @@ void HLSWriter::codePPS( const PPS* pcPPS, const SPS* pcSPS )
     }
     if( pcPPS->rectSlice & !pcPPS->singleSlicePerSubPic )
     {
-      CHECK( pcPPS->numSlicesInPic > 1, "currently only one slice supported" );
+      CHECK_vvenc(pcPPS->numSlicesInPic > 1, "currently only one slice supported" );
       WRITE_UVLC( pcPPS->numSlicesInPic - 1,            "pps_num_slices_in_pic_minus1" );
     }
 
@@ -506,8 +506,8 @@ void HLSWriter::codeAlfAps( const APS* pcAPS )
     if (paramCcAlf.newCcAlfFilter[ccIdx])
     {
       const int filterCount = paramCcAlf.ccAlfFilterCount[ccIdx];
-      CHECK(filterCount > MAX_NUM_CC_ALF_FILTERS, "CC ALF Filter count is too large");
-      CHECK(filterCount == 0,                     "CC ALF Filter count is too small");
+      CHECK_vvenc(filterCount > MAX_NUM_CC_ALF_FILTERS, "CC ALF Filter count is too large");
+      CHECK_vvenc(filterCount == 0, "CC ALF Filter count is too small");
 
       WRITE_UVLC(filterCount - 1, ccIdx == 0 ? "alf_cc_cb_filters_signalled_minus1" : "alf_cc_cr_filters_signalled_minus1");
 
@@ -710,7 +710,7 @@ void HLSWriter::codeSPS( const SPS* pcSPS )
 
   WRITE_CODE( pcSPS->spsId, 4,                            "sps_seq_parameter_set_id" );
   WRITE_CODE( pcSPS->vpsId, 4,                            "sps_video_parameter_set_id" );
-  CHECK(pcSPS->maxTLayers == 0, "Maximum number of temporal sub-layers is '0'");
+  CHECK_vvenc(pcSPS->maxTLayers == 0, "Maximum number of temporal sub-layers is '0'");
 
   WRITE_CODE(pcSPS->maxTLayers - 1, 3,                    "sps_max_sub_layers_minus1");
   WRITE_CODE( int(pcSPS->chromaFormatIdc), 2,             "sps_chroma_format_idc" );
@@ -828,7 +828,7 @@ void HLSWriter::codeSPS( const SPS* pcSPS )
     const ChromaQpMappingTable& chromaQpMappingTable = pcSPS->chromaQpMappingTable;
     WRITE_FLAG(chromaQpMappingTable.m_sameCQPTableForAllChromaFlag,       "same_qp_table_for_chroma");
     int numQpTables = chromaQpMappingTable.m_sameCQPTableForAllChromaFlag ? 1 : (pcSPS->jointCbCr ? 3 : 2);
-    CHECK(numQpTables != chromaQpMappingTable.m_numQpTables, " numQpTables does not match at encoder side ");
+    CHECK_vvenc(numQpTables != chromaQpMappingTable.m_numQpTables, " numQpTables does not match at encoder side ");
     for (int i = 0; i < numQpTables; i++)
     {
       WRITE_SVLC(chromaQpMappingTable.m_qpTableStartMinus26[i],           "sps_qp_table_starts_minus26");
@@ -1042,7 +1042,7 @@ void HLSWriter::codeSPS( const SPS* pcSPS )
     g_HLSTraceEnable = traceEnable;
 #endif
     unsigned vui_payload_data_num_bits = bs_count.getNumberOfWrittenBits();
-    CHECK( vui_payload_data_num_bits % 8 != 0, "Invalid number of VUI payload data bits" );
+    CHECK_vvenc(vui_payload_data_num_bits % 8 != 0, "Invalid number of VUI payload data bits" );
     setBitstream(bs);
     WRITE_UVLC((vui_payload_data_num_bits >> 3) - 1,        "sps_vui_payload_size_minus1");
     while (!isByteAligned())
@@ -1104,7 +1104,7 @@ void HLSWriter::codeDCI( const DCI* dci )
 
   WRITE_CODE( 0,                                    4,        "dci_reserved_zero_5bits" );
   uint32_t numPTLs = (uint32_t) dci->profileTierLevel.size();
-  CHECK (numPTLs<1, "At least one PTL must be available in DPS");
+  CHECK_vvenc (numPTLs < 1, "At least one PTL must be available in DPS");
 
   WRITE_CODE( numPTLs - 1,                          4,        "dci_num_ptls_minus1" );
 
@@ -1180,7 +1180,7 @@ void HLSWriter::codeVPS(const VPS* pcVPS)
         }
       }
     }
-    CHECK(pcVPS->numPtls - 1 >= pcVPS->totalNumOLSs, "vps_num_ptls_minus1 shall be less than TotalNumOlss");
+    CHECK_vvenc(pcVPS->numPtls - 1 >= pcVPS->totalNumOLSs, "vps_num_ptls_minus1 shall be less than TotalNumOlss");
     WRITE_CODE(pcVPS->numPtls - 1, 8,                   "vps_num_ptls_minus1");
   }
 
@@ -1202,7 +1202,7 @@ void HLSWriter::codeVPS(const VPS* pcVPS)
     WRITE_FLAG( 0,                                      "vps_ptl_reserved_zero_bit");
     cnt++;
   }
-  CHECK(cnt>=8, "More than '8' alignment bytes written");
+  CHECK_vvenc(cnt >= 8, "More than '8' alignment bytes written");
   for (int i = 0; i < pcVPS->numPtls; i++)
   {
     codeProfileTierLevel(&pcVPS->profileTierLevel[i], pcVPS->ptPresent[i], pcVPS->ptlMaxTemporalId[i] - 1);
@@ -1230,13 +1230,13 @@ void HLSWriter::codeVPS(const VPS* pcVPS)
     }
     if( pcVPS->maxSubLayers == 1 )
     {
-      CHECK( pcVPS->dpbMaxTemporalId[i] != 0, "When vps_max_sublayers_minus1 is equal to 0, the value of dpb_max_temporal_id[ i ] is inferred to be equal to 0" );
+      CHECK_vvenc(pcVPS->dpbMaxTemporalId[i] != 0, "When vps_max_sublayers_minus1 is equal to 0, the value of dpb_max_temporal_id[ i ] is inferred to be equal to 0" );
     }
     else
     {
       if( pcVPS->defaultPtlDpbHrdMaxTidFlag )
       {
-        CHECK( pcVPS->dpbMaxTemporalId[i] != pcVPS->maxSubLayers - 1, "When vps_max_sublayers_minus1 is greater than 0 and vps_all_layers_same_num_sublayers_flag is equal to 1, the value of dpb_max_temporal_id[ i ] is inferred to be equal to vps_max_sublayers_minus1" );
+        CHECK_vvenc(pcVPS->dpbMaxTemporalId[i] != pcVPS->maxSubLayers - 1, "When vps_max_sublayers_minus1 is greater than 0 and vps_all_layers_same_num_sublayers_flag is equal to 1, the value of dpb_max_temporal_id[ i ] is inferred to be equal to vps_max_sublayers_minus1" );
       }
       else
       {
@@ -1326,9 +1326,9 @@ void HLSWriter::codePictureHeader( const PicHeader* picHeader, bool writeRbspTra
   // parameter sets
   WRITE_UVLC(picHeader->ppsId,                  "ph_pic_parameter_set_id");
   pps = cs.slice->pps;
-  CHECK(pps == 0, "Invalid PPS");
+  CHECK_vvenc(pps == 0, "Invalid PPS");
   sps = cs.slice->sps;
-  CHECK(sps == 0, "Invalid SPS");
+  CHECK_vvenc(sps == 0, "Invalid SPS");
   int pocBits = cs.slice->sps->bitsForPOC;
   int pocMask = (1 << pocBits) - 1;
   WRITE_CODE(cs.slice->poc & pocMask, pocBits,  "ph_pic_order_cnt_lsb");
@@ -1454,13 +1454,13 @@ void HLSWriter::codePictureHeader( const PicHeader* picHeader, bool writeRbspTra
       }
       else if(sps->getNumRPL(listIdx) == 0)
       {
-        CHECK(picHeader->rplIdx[listIdx] != -1, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
+        CHECK_vvenc(picHeader->rplIdx[listIdx] != -1, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
       }
       else if(listIdx == 1)
       {
         auto rplsSpsFlag0 = picHeader->rplIdx[0] != -1 ? 1 : 0;
         auto rplsSpsFlag1 = picHeader->rplIdx[1] != -1 ? 1 : 0;
-        CHECK(rplsSpsFlag1 != rplsSpsFlag0, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
+        CHECK_vvenc(rplsSpsFlag1 != rplsSpsFlag0, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
       }
 
       if(picHeader->rplIdx[listIdx] != -1)
@@ -1473,11 +1473,11 @@ void HLSWriter::codePictureHeader( const PicHeader* picHeader, bool writeRbspTra
         }
         else if(sps->getNumRPL(listIdx) == 1)
         {
-          CHECK(picHeader->rplIdx[listIdx] != 0, "RPL1Idx is not signalled but it is not equal to 0");
+          CHECK_vvenc(picHeader->rplIdx[listIdx] != 0, "RPL1Idx is not signalled but it is not equal to 0");
         }
         else
         {
-          CHECK(picHeader->rplIdx[1] != picHeader->rplIdx[0], "RPL1Idx is not signalled but it is not the same as RPL0Idx");
+          CHECK_vvenc(picHeader->rplIdx[1] != picHeader->rplIdx[0], "RPL1Idx is not signalled but it is not the same as RPL0Idx");
         }
       }
       // explicit RPL in picture header
@@ -1762,7 +1762,7 @@ void HLSWriter::codeSliceHeader( const Slice* slice )
 
   if (!picHeader->picIntraSliceAllowed )
   {
-    CHECK(slice->sliceType == VVENC_I_SLICE, "when pic_intra_slice_allowed_flag = 0, no I_Slice is allowed");
+    CHECK_vvenc(slice->sliceType == VVENC_I_SLICE, "when pic_intra_slice_allowed_flag = 0, no I_Slice is allowed");
   }
 
   if (slice->sps->alfEnabled && !slice->pps->alfInfoInPh)
@@ -1868,13 +1868,13 @@ void HLSWriter::codeSliceHeader( const Slice* slice )
       }
       else if (slice->sps->getNumRPL(1) == 0)
       {
-        CHECK(slice->rplIdx[1] != -1, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
+        CHECK_vvenc(slice->rplIdx[1] != -1, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
       }
       else
       {
         auto rplsSpsFlag0 = slice->rplIdx[0] != -1 ? 1 : 0;
         auto rplsSpsFlag1 = slice->rplIdx[1] != -1 ? 1 : 0;
-        CHECK(rplsSpsFlag1 != rplsSpsFlag0, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
+        CHECK_vvenc(rplsSpsFlag1 != rplsSpsFlag0, "rpl_sps_flag[1] will be infer to 0 and this is not what was expected");
       }
 
       if (slice->rplIdx[1] != -1)
@@ -1890,11 +1890,11 @@ void HLSWriter::codeSliceHeader( const Slice* slice )
         }
         else if (slice->sps->getNumRPL(1) == 1)
         {
-          CHECK(slice->rplIdx[1] != 0, "RPL1Idx is not signalled but it is not equal to 0");
+          CHECK_vvenc(slice->rplIdx[1] != 0, "RPL1Idx is not signalled but it is not equal to 0");
         }
         else
         {
-          CHECK(slice->rplIdx[1] != slice->rplIdx[0], "RPL1Idx is not signalled but it is not the same as RPL0Idx");
+          CHECK_vvenc(slice->rplIdx[1] != slice->rplIdx[0], "RPL1Idx is not signalled but it is not the same as RPL0Idx");
         }
       }
       else
@@ -2000,7 +2000,7 @@ void HLSWriter::codeSliceHeader( const Slice* slice )
         WRITE_SVLC( slice->sliceChromaQpDelta[COMP_JOINT_CbCr], "sh_joint_cbcr_qp_offset");
       }
     }
-    CHECK(numberValidComponents < COMP_Cr+1, "Too many valid components");
+    CHECK_vvenc(numberValidComponents < COMP_Cr + 1, "Too many valid components");
   }
 
   if (slice->pps->chromaQpOffsetListLen>0)
@@ -2241,7 +2241,7 @@ void  HLSWriter::codeTilesWPPEntryPoint( Slice* pSlice )
   while (maxOffset >= (1u << (offsetLenMinus1 + 1)))
   {
     offsetLenMinus1++;
-    CHECK(offsetLenMinus1 + 1 >= 32, "Invalid offset length minus 1");
+    CHECK_vvenc(offsetLenMinus1 + 1 >= 32, "Invalid offset length minus 1");
   }
 
   if (pSlice->getNumberOfSubstreamSizes()>0)
@@ -2289,7 +2289,7 @@ void HLSWriter::xCodePredWeightTable( const Slice* slice )
 
           if( bChroma )
           {
-            CHECK( wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported" );
+            CHECK_vvenc(wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported" );
             iDeltaDenom = (wp[COMP_Cb].log2WeightDenom - wp[COMP_Y].log2WeightDenom);
             WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );
           }
@@ -2303,7 +2303,7 @@ void HLSWriter::xCodePredWeightTable( const Slice* slice )
         for ( int iRefIdx=0 ; iRefIdx<slice->numRefIdx[ refPicList ] ; iRefIdx++ )
         {
           slice->getWpScaling( refPicList, iRefIdx, wp );
-          CHECK( wp[COMP_Cb].presentFlag != wp[COMP_Cr].presentFlag, "Inconsistent settings for chroma channels" );
+          CHECK_vvenc(wp[COMP_Cb].presentFlag != wp[COMP_Cr].presentFlag, "Inconsistent settings for chroma channels" );
           WRITE_FLAG( wp[COMP_Cb].presentFlag, iNumRef==0?"chroma_weight_l0_flag[i]":"chroma_weight_l1_flag[i]" );
           uiTotalSignalledWeightFlags += 2*wp[COMP_Cb].presentFlag;
         }
@@ -2325,7 +2325,7 @@ void HLSWriter::xCodePredWeightTable( const Slice* slice )
           {
             for ( int j = COMP_Cb ; j < numberValidComponents ; j++ )
             {
-              CHECK(wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported");
+              CHECK_vvenc(wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported");
               int iDeltaWeight = (wp[j].iWeight - (1<<wp[COMP_Cb].log2WeightDenom));
               WRITE_SVLC( iDeltaWeight, iNumRef==0?"delta_chroma_weight_l0[i]":"delta_chroma_weight_l1[i]" );
 
@@ -2338,7 +2338,7 @@ void HLSWriter::xCodePredWeightTable( const Slice* slice )
         }
       }
     }
-    CHECK(uiTotalSignalledWeightFlags>24, "Too many signalled weight flags");
+    CHECK_vvenc(uiTotalSignalledWeightFlags > 24, "Too many signalled weight flags");
   }
 }
 
@@ -2369,7 +2369,7 @@ void HLSWriter::xCodePredWeightTable( const PicHeader *picHeader, const PPS *pps
 
         if( bChroma )
         {
-          CHECK( wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported" );
+          CHECK_vvenc(wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported" );
           iDeltaDenom = (wp[COMP_Cb].log2WeightDenom - wp[COMP_Y].log2WeightDenom);
           WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );
         }
@@ -2383,7 +2383,7 @@ void HLSWriter::xCodePredWeightTable( const PicHeader *picHeader, const PPS *pps
       for ( int iRefIdx=0 ; iRefIdx<numLxWeights; iRefIdx++ )
       {
         picHeader->getWpScaling( refPicList, iRefIdx, wp );
-        CHECK( wp[COMP_Cb].presentFlag != wp[COMP_Cr].presentFlag, "Inconsistent settings for chroma channels" );
+        CHECK_vvenc(wp[COMP_Cb].presentFlag != wp[COMP_Cr].presentFlag, "Inconsistent settings for chroma channels" );
         WRITE_FLAG( wp[COMP_Cb].presentFlag, iNumRef==0?"chroma_weight_l0_flag[i]":"chroma_weight_l1_flag[i]" );
         uiTotalSignalledWeightFlags += 2*wp[COMP_Cb].presentFlag;
       }
@@ -2405,7 +2405,7 @@ void HLSWriter::xCodePredWeightTable( const PicHeader *picHeader, const PPS *pps
         {
           for ( int j = COMP_Cb ; j < numberValidComponents ; j++ )
           {
-            CHECK(wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported");
+            CHECK_vvenc(wp[COMP_Cb].log2WeightDenom != wp[COMP_Cr].log2WeightDenom, "Chroma blocks of different size not supported");
             int iDeltaWeight = (wp[j].iWeight - (1<<wp[COMP_Cb].log2WeightDenom));
             WRITE_SVLC( iDeltaWeight, iNumRef==0?"delta_chroma_weight_l0[i]":"delta_chroma_weight_l1[i]" );
 
@@ -2431,7 +2431,7 @@ void HLSWriter::xCodePredWeightTable( const PicHeader *picHeader, const PPS *pps
       moreSyntaxToBeParsed = (numLxWeights == 0) ? false : true;
     }
   }
-  CHECK(uiTotalSignalledWeightFlags>24, "Too many signalled weight flags");
+  CHECK_vvenc(uiTotalSignalledWeightFlags > 24, "Too many signalled weight flags");
 }
 
 void HLSWriter::alfFilter( const AlfParam& alfParam, const bool isChroma, const int altIdx )

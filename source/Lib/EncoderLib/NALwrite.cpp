@@ -63,7 +63,7 @@ OutputBitstream bsNALUHeader;
   bsNALUHeader.write(forbiddenZero, 1);   // forbidden_zero_bit
   int nuhReservedZeroBit = 0;
   bsNALUHeader.write(nuhReservedZeroBit, 1);   // nuh_reserved_zero_bit
-  CHECK(nalu.m_nuhLayerId > 63, "nuh_layer_id > 63");
+  CHECK_vvenc(nalu.m_nuhLayerId > 63, "nuh_layer_id > 63");
   bsNALUHeader.write(nalu.m_nuhLayerId, 6);       // nuh_layer_id
   bsNALUHeader.write(nalu.m_nalUnitType, 5);      // nal_unit_type
   bsNALUHeader.write(nalu.m_temporalId + 1, 3);   // nuh_temporal_id_plus1

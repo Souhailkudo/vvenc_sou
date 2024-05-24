@@ -3070,7 +3070,7 @@ int EncAdaptiveLoopFilter::lengthUvlc( int uiCode )
   int uiLength = 1;
   int uiTemp = ++uiCode;
 
-  CHECK( !uiTemp, "Integer overflow" );
+  CHECK_vvenc(!uiTemp, "Integer overflow" );
 
   while( 1 != uiTemp )
   {
@@ -4832,7 +4832,7 @@ std::vector<int> EncAdaptiveLoopFilter::getAvaiApsIdsLuma(CodingStructure& cs, i
   {
     newApsId = ALF_CTB_MAX_NUM_APS - 1;
   }
-  CHECK(newApsId >= ALF_CTB_MAX_NUM_APS, "Wrong APS index assignment in getAvaiApsIdsLuma");
+  CHECK_vvenc(newApsId >= ALF_CTB_MAX_NUM_APS, "Wrong APS index assignment in getAvaiApsIdsLuma");
   return result;
 }
 void  EncAdaptiveLoopFilter::initDistortion()
@@ -5490,7 +5490,7 @@ int EncAdaptiveLoopFilter::getCoeffRateCcAlf(short chromaCoeff[MAX_NUM_CC_ALF_FI
         signaledFilterCount++;
       }
     }
-    CHECK(signaledFilterCount != filterCount, "Number of filter signaled not same as indicated");
+    CHECK_vvenc(signaledFilterCount != filterCount, "Number of filter signaled not same as indicated");
   }
 
   return bits;
@@ -5530,8 +5530,8 @@ void EncAdaptiveLoopFilter::deriveCcAlfFilterCoeff( ComponentID compID, short fi
 
   for (int k = 0; k < size; k++)
   {
-    CHECK( filterCoeffInt[k] < -(1 << CCALF_DYNAMIC_RANGE), "this is not possible: filterCoeffInt[k] <  -(1 << CCALF_DYNAMIC_RANGE)");
-    CHECK( filterCoeffInt[k] > (1 << CCALF_DYNAMIC_RANGE), "this is not possible: filterCoeffInt[k] >  (1 << CCALF_DYNAMIC_RANGE)");
+    CHECK_vvenc(filterCoeffInt[k] < -(1 << CCALF_DYNAMIC_RANGE), "this is not possible: filterCoeffInt[k] <  -(1 << CCALF_DYNAMIC_RANGE)");
+    CHECK_vvenc(filterCoeffInt[k] > (1 << CCALF_DYNAMIC_RANGE), "this is not possible: filterCoeffInt[k] >  (1 << CCALF_DYNAMIC_RANGE)");
   }
 
   const alf_float_t invFactor = 1.0 / ( alf_float_t )( 1 << m_scaleBits );
@@ -5558,7 +5558,7 @@ void EncAdaptiveLoopFilter::deriveCcAlfFilterCoeff( ComponentID compID, short fi
             break;
           }
         }
-        CHECK( org_idx < 0, "this is wrong, does not find coeff from forward_tab");
+        CHECK_vvenc(org_idx < 0, "this is wrong, does not find coeff from forward_tab");
         if ( (org_idx - delta < 0) || (org_idx - delta >= CCALF_CANDS_COEFF_NR * 2 - 1) )
           continue;
 
@@ -5575,8 +5575,8 @@ void EncAdaptiveLoopFilter::deriveCcAlfFilterCoeff( ComponentID compID, short fi
       if (errMin < errRef)
       {
         minIndex -= delta;
-        CHECK( minIndex < 0, "this is wrong, index - delta < 0");
-        CHECK( minIndex >= CCALF_CANDS_COEFF_NR * 2 - 1, "this is wrong, index - delta >= CCALF_CANDS_COEFF_NR * 2 - 1");
+        CHECK_vvenc(minIndex < 0, "this is wrong, index - delta < 0");
+        CHECK_vvenc(minIndex >= CCALF_CANDS_COEFF_NR * 2 - 1, "this is wrong, index - delta >= CCALF_CANDS_COEFF_NR * 2 - 1");
         filterCoeffInt[idxMin] = forward_tab[minIndex];
         modified++;
         errRef = errMin;
@@ -5587,7 +5587,7 @@ void EncAdaptiveLoopFilter::deriveCcAlfFilterCoeff( ComponentID compID, short fi
 
   for (int k = 0; k < (size + 1); k++)
   {
-    CHECK((filterCoeffInt[k] < -(1 << CCALF_DYNAMIC_RANGE)) || (filterCoeffInt[k] > (1 << CCALF_DYNAMIC_RANGE)), "Exceeded valid range for CC ALF coefficient");
+    CHECK_vvenc((filterCoeffInt[k] < -(1 << CCALF_DYNAMIC_RANGE)) || (filterCoeffInt[k] > (1 << CCALF_DYNAMIC_RANGE)), "Exceeded valid range for CC ALF coefficient");
     filterCoeff[filterIdx][k] = filterCoeffInt[k];
   }
 }
@@ -6118,7 +6118,7 @@ void EncAdaptiveLoopFilter::deriveCcAlfFilter( CodingStructure& cs, ComponentID 
         }
         m_bestFilterIdxEnabled[filterIdx] = ( filterIdx < m_bestFilterCount ) ? true : false;
       }
-      CHECK( filterCount != m_bestFilterCount, "Number of filters enabled did not match the filter count");
+      CHECK_vvenc(filterCount != m_bestFilterCount, "Number of filters enabled did not match the filter count");
     }
 
     m_ccAlfFilterParam.ccAlfFilterCount[compID - 1] = m_bestFilterCount;
@@ -6259,9 +6259,9 @@ void EncAdaptiveLoopFilter::getBlkStatsCcAlf(AlfCovariance &alfCovariance, const
     vbPos = m_picHeight;
   }
 
-  CHECK( ( compArea.width  & 3 ) != 0, "Area width has to be a multiple of 4!" );
-  CHECK( ( compArea.height & 3 ) != 0, "Area width has to be a multiple of 4!" );
-  CHECK( isLuma( compID ), "Only chroma can be analysed in CCALF!" );
+  CHECK_vvenc((compArea.width & 3 ) != 0, "Area width has to be a multiple of 4!" );
+  CHECK_vvenc((compArea.height & 3 ) != 0, "Area width has to be a multiple of 4!" );
+  CHECK_vvenc(isLuma(compID ), "Only chroma can be analysed in CCALF!" );
 
   int effStride = recStride << getComponentScaleY(compID, m_chromaFormat);
 
@@ -6429,7 +6429,7 @@ void EncAdaptiveLoopFilter::getBlkStatsCcAlf(AlfCovariance &alfCovariance, const
 
 void EncAdaptiveLoopFilter::calcCovariance4CcAlf(Pel ELocal[MAX_NUM_CC_ALF_CHROMA_COEFF][16], const int N, const Pel* rec, const int stride, const AlfFilterShape& shape, int vbDistance)
 {
-  CHECK(shape.filterType != CC_ALF, "Bad CC ALF shape");
+  CHECK_vvenc(shape.filterType != CC_ALF, "Bad CC ALF shape");
 
   const Pel* recYM1 = rec - 1 * stride;
   const Pel* recY0  = rec;
@@ -6494,7 +6494,7 @@ void EncAdaptiveLoopFilter::calcCovariance4CcAlf(Pel ELocal[MAX_NUM_CC_ALF_CHROM
 
 void EncAdaptiveLoopFilter::calcCovarianceCcAlf(Pel ELocal[MAX_NUM_CC_ALF_CHROMA_COEFF], const Pel *rec, const int stride, const AlfFilterShape& shape, int vbDistance)
 {
-  CHECK(shape.filterType != CC_ALF, "Bad CC ALF shape");
+  CHECK_vvenc(shape.filterType != CC_ALF, "Bad CC ALF shape");
 
   const Pel *recYM1 = rec - 1 * stride;
   const Pel *recY0  = rec;

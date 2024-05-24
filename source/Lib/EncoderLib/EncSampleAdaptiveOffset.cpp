@@ -256,7 +256,7 @@ void EncSampleAdaptiveOffset::getCtuStatistics( CodingStructure& cs, std::vector
   isBelowAvail      = ( ctuArea.Y().y + pcv.maxCUSize < pcv.lumaHeight );
   isAboveRightAvail = ( ( ctuArea.Y().y > 0 ) && ( isRightAvail ) );
 
-  CHECK( !cs.pps->loopFilterAcrossSlicesEnabled, "Not implemented" );
+  CHECK_vvenc(!cs.pps->loopFilterAcrossSlicesEnabled, "Not implemented" );
   if( cs.pps->getNumTiles() > 1 && !cs.pps->loopFilterAcrossTilesEnabled )
   {
     const int ctuX    = ctuArea.lx() >> cs.pcv->maxCUSizeLog2;

@@ -153,7 +153,7 @@ void mipMatrixMul_SSE( Pel* res, const Pel* input, const uint8_t* weight, const 
   int sum = 0;
   for( int i = 0; i < inputSize; i++ ) { sum += input[i]; }
   const int offset = (1 << (MIP_SHIFT_MATRIX - 1)) - MIP_OFFSET_MATRIX * sum + (inputOffset << MIP_SHIFT_MATRIX);
-  CHECK( inputSize != 4 * (inputSize >> 2), "Error, input size not divisible by four" );
+  CHECK_vvenc(inputSize != 4 * (inputSize >> 2), "Error, input size not divisible by four" );
 
 #if USE_AVX2
 #if !ENABLE_VALGRIND_CODE

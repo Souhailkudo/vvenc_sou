@@ -175,7 +175,7 @@ public:
   void        read            ( uint32_t uiNumberOfBits, uint32_t& ruiBits );
   void        readByte        ( uint32_t &ruiBits )
   {
-    CHECK( m_fifo_idx >= m_fifo.size(), "FIFO exceeded" );
+    CHECK_vvenc(m_fifo_idx >= m_fifo.size(), "FIFO exceeded" );
     ruiBits = m_fifo[m_fifo_idx++];
 #if ENABLE_TRACING
     m_numBitsRead += 8;
@@ -184,7 +184,7 @@ public:
 
   void        peekPreviousByte( uint32_t &byte )
   {
-    CHECK( m_fifo_idx == 0, "FIFO empty" );
+    CHECK_vvenc(m_fifo_idx == 0, "FIFO empty" );
     byte = m_fifo[m_fifo_idx - 1];
   }
 

@@ -210,7 +210,7 @@ void DecSlice::decompressSlice( Slice* slice, InputBitstream* bitstream )
     if( ctuIdx == slice->sliceMap.numCtuInSlice-1 )
     {
       unsigned binVal = cabacReader.terminating_bit();
-      CHECK( !binVal, "Expecting a terminating bit" );
+      CHECK_vvenc(!binVal, "Expecting a terminating bit" );
       cabacReader.remaining_bytes( false );
     }
     else if( ( ctuXPosInCtus + 1 == tileXPosInCtus + tileColWidth ) &&
@@ -219,7 +219,7 @@ void DecSlice::decompressSlice( Slice* slice, InputBitstream* bitstream )
       // The sub-stream/stream should be terminated after this CTU.
       // (end of slice-segment, end of tile, end of wavefront-CTU-row)
       unsigned binVal = cabacReader.terminating_bit();
-      CHECK( !binVal, "Expecting a terminating bit" );
+      CHECK_vvenc(!binVal, "Expecting a terminating bit" );
       if( entryPointPresent )
       {
         cabacReader.remaining_bytes( true );

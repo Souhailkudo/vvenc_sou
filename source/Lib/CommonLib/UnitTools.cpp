@@ -149,7 +149,7 @@ bool CU::checkCCLMAllowed(const CodingUnit& cu)
     {
       if( cu.chromaFormat == CHROMA_420 )
       {
-        CHECK( !(cu.blocks[COMP_Cb].width <= 16 && cu.blocks[COMP_Cb].height <= 16), "chroma cu size shall be <= 16x16 for YUV420 format" );
+        CHECK_vvenc(!(cu.blocks[COMP_Cb].width <= 16 && cu.blocks[COMP_Cb].height <= 16), "chroma cu size shall be <= 16x16 for YUV420 format" );
       }
       allowCCLM = true;
     }
@@ -158,7 +158,7 @@ bool CU::checkCCLMAllowed(const CodingUnit& cu)
     {
       if( cu.chromaFormat == CHROMA_420 )
       {
-        CHECK( !(cu.blocks[COMP_Cb].width == 32 && cu.blocks[COMP_Cb].height == 32), "chroma cu size shall be 32x32 for YUV420 format" );
+        CHECK_vvenc(!(cu.blocks[COMP_Cb].width == 32 && cu.blocks[COMP_Cb].height == 32), "chroma cu size shall be 32x32 for YUV420 format" );
       }
       allowCCLM = true;
     }
@@ -167,7 +167,7 @@ bool CU::checkCCLMAllowed(const CodingUnit& cu)
     {
       if( cu.chromaFormat == CHROMA_420 )
       {
-        CHECK( !(cu.blocks[COMP_Cb].width == 32 && cu.blocks[COMP_Cb].height == 16), "chroma cu size shall be 32x16 for YUV420 format" );
+        CHECK_vvenc(!(cu.blocks[COMP_Cb].width == 32 && cu.blocks[COMP_Cb].height == 16), "chroma cu size shall be 32x16 for YUV420 format" );
       }
       allowCCLM = true;
     }
@@ -182,7 +182,7 @@ bool CU::checkCCLMAllowed(const CodingUnit& cu)
       if( colLumaCu->lwidth() < 64 || colLumaCu->lheight() < 64 ) //further split at 64x64 luma node
       {
         const PartSplit cuSplitTypeDepth1Luma = CU::getSplitAtDepth( *colLumaCu, depthFor64x64Node );
-        CHECK( !(cuSplitTypeDepth1Luma >= CU_QUAD_SPLIT && cuSplitTypeDepth1Luma <= CU_TRIV_SPLIT), "split mode shall be BT, TT or QT" );
+        CHECK_vvenc(!(cuSplitTypeDepth1Luma >= CU_QUAD_SPLIT && cuSplitTypeDepth1Luma <= CU_TRIV_SPLIT), "split mode shall be BT, TT or QT" );
         if( cuSplitTypeDepth1Luma != CU_QUAD_SPLIT )
         {
           allowCCLM = false;
@@ -249,8 +249,8 @@ bool CU::getRprScaling( const SPS* sps, const PPS* curPPS, Picture* refPic, int&
   int curPicHeightY = curPPS->picHeightInLumaSamples;                      // pic_height_in_luma_samples 
   int max8MinCbSizeY = std::max((int)8, (1<<sps->log2MinCodingBlockSize)); // Max(8, MinCbSizeY)
 
-  CHECK((curPicWidth * curSeqMaxPicWidthY) < refPicWidth * (curPicWidthY - max8MinCbSizeY), "(curPicWidth * curSeqMaxPicWidthY) should be greater than or equal to refPicWidth * (curPicWidthY - max8MinCbSizeY))");
-  CHECK((curPicHeight * curSeqMaxPicHeightY) < refPicHeight * (curPicHeightY - max8MinCbSizeY), "(curPicHeight * curSeqMaxPicHeightY) should be greater than or equal to refPicHeight * (curPicHeightY - max8MinCbSizeY))");
+  CHECK_vvenc((curPicWidth * curSeqMaxPicWidthY) < refPicWidth * (curPicWidthY - max8MinCbSizeY), "(curPicWidth * curSeqMaxPicWidthY) should be greater than or equal to refPicWidth * (curPicWidthY - max8MinCbSizeY))");
+  CHECK_vvenc((curPicHeight * curSeqMaxPicHeightY) < refPicHeight * (curPicHeightY - max8MinCbSizeY), "(curPicHeight * curSeqMaxPicHeightY) should be greater than or equal to refPicHeight * (curPicHeightY - max8MinCbSizeY))");
 
   return refPic->cs->pps->isRefScaled( *curPPS );
 }
@@ -348,13 +348,13 @@ PartSplit CU::getSplitAtDepth( const CodingUnit& cu, const unsigned depth )
 ModeType CU::getModeTypeAtDepth( const CodingUnit& cu, const unsigned depth )
 {
   ModeType modeType = ModeType( (cu.modeTypeSeries >> (depth * 3)) & 0x07 );
-  CHECK( depth > cu.depth, " depth is wrong" );
+  CHECK_vvenc(depth > cu.depth, " depth is wrong" );
   return modeType;
 }
 
 bool CU::divideTuInRows( const CodingUnit &cu )
 {
-  CHECK( cu.ispMode != HOR_INTRA_SUBPARTITIONS && cu.ispMode != VER_INTRA_SUBPARTITIONS, "Intra Subpartitions type not recognized!" );
+  CHECK_vvenc(cu.ispMode != HOR_INTRA_SUBPARTITIONS && cu.ispMode != VER_INTRA_SUBPARTITIONS, "Intra Subpartitions type not recognized!" );
   return cu.ispMode == HOR_INTRA_SUBPARTITIONS ? true : false;
 }
 
@@ -429,7 +429,7 @@ bool CU::canUseLfnstWithISP( const CompArea& cuArea, const ISPType ispSplitType 
 
 bool CU::canUseLfnstWithISP( const CodingUnit& cu, const ChannelType chType )
 {
-  CHECK( !isLuma( chType ), "Wrong ISP mode!" );
+  CHECK_vvenc(!isLuma(chType ), "Wrong ISP mode!" );
   return CU::canUseLfnstWithISP( cu.blocks[chType == CH_L ? 0 : 1], (ISPType)cu.ispMode );
 }
 
@@ -453,7 +453,7 @@ uint32_t CU::getISPSplitDim( const int width, const int height, const PartSplit 
   const int factorToMinSamples = nonSplitDimensionSize < minNumberOfSamplesPerCu ? minNumberOfSamplesPerCu >> Log2(nonSplitDimensionSize) : 1;
   partitionSize = ( splitDimensionSize >> divShift ) < factorToMinSamples ? factorToMinSamples : ( splitDimensionSize >> divShift );
 
-  CHECK( Log2(partitionSize) + Log2(nonSplitDimensionSize) < Log2(minNumberOfSamplesPerCu), "A partition has less than the minimum amount of samples!" );
+  CHECK_vvenc(Log2(partitionSize) + Log2(nonSplitDimensionSize) < Log2(minNumberOfSamplesPerCu), "A partition has less than the minimum amount of samples!" );
   return partitionSize;
 }
 
@@ -528,7 +528,7 @@ int CU::getIntraMPMs( const CodingUnit& cu, unsigned* mpm )
       aboveIntraDir = puAbove->intraDir[CH_L];
     }
 
-    CHECK(2 >= numMPMs, "Invalid number of most probable modes");
+    CHECK_vvenc(2 >= numMPMs, "Invalid number of most probable modes");
 
     const int offset = (int)NUM_LUMA_MODE - 6;
     const int mod = offset + 3;
@@ -605,9 +605,9 @@ int CU::getIntraMPMs( const CodingUnit& cu, unsigned* mpm )
     }
     for (int i = 0; i < numMPMs; i++)
     {
-      CHECK(mpm[i] >= NUM_LUMA_MODE, "Invalid MPM");
+      CHECK_vvenc(mpm[i] >= NUM_LUMA_MODE, "Invalid MPM");
     }
-    CHECK(numCand == 0, "No candidates found");
+    CHECK_vvenc(numCand == 0, "No candidates found");
     return numCand;
   }
 }
@@ -1455,7 +1455,7 @@ bool CU::getColocatedMVP(const CodingUnit& cu, const RefPicList refPicList, cons
     }
   }
 
-  CHECK( sliceCol == nullptr, "Slice segment not found" );
+  CHECK_vvenc(sliceCol == nullptr, "Slice segment not found" );
 
   const bool bIsCurrRefLongTerm = slice.getRefPic(refPicList, refIdx)->isLongTerm;
   const bool bIsColRefLongTerm  = sliceCol->isUsedAsLongTerm[eColRefPicList][iColRefIdx];
@@ -2330,7 +2330,7 @@ void CU::getAffineControlPointCand(const CodingUnit& cu, MotionInfo mi[4], bool 
         break;
 
       default:
-        CHECK(1, "Invalid model index!\n");
+        CHECK_vvenc(1, "Invalid model index!\n");
         break;
       }
     }
@@ -2613,7 +2613,7 @@ void CU::getAffineMergeCand( CodingUnit& cu, AffineMergeCtx& affMrgCtx, const in
   {
     MergeCtx mrgCtx = *affMrgCtx.mrgCtx;
     bool tmpLICFlag = false;
-    CHECK(mrgCtx.subPuMvpMiBuf.area() == 0 || !mrgCtx.subPuMvpMiBuf.buf, "Buffer not initialized");
+    CHECK_vvenc(mrgCtx.subPuMvpMiBuf.area() == 0 || !mrgCtx.subPuMvpMiBuf.buf, "Buffer not initialized");
     mrgCtx.subPuMvpMiBuf.fill(MotionInfo());
 
     int pos = 0;
@@ -2893,7 +2893,7 @@ void CU::setAllAffineMvField(CodingUnit& cu, const MvField *mvField, RefPicList 
   setAllAffineMv(cu, mv[0], mv[1], mv[2], eRefList);
 
   // Set RefIdx
-  CHECK(mvField[0].refIdx != mvField[1].refIdx || mvField[0].refIdx != mvField[2].refIdx, "Affine mv corners don't have the same refIdx.");
+  CHECK_vvenc(mvField[0].refIdx != mvField[1].refIdx || mvField[0].refIdx != mvField[2].refIdx, "Affine mv corners don't have the same refIdx.");
   cu.refIdx[eRefList] = mvField[0].refIdx;
 }
 
@@ -3066,7 +3066,7 @@ void CU::spanMotionInfo( CodingUnit& cu, const MergeCtx &mrgCtx )
   }
   else if (cu.mergeType == MRG_TYPE_SUBPU_ATMVP)
   {
-    CHECK(mrgCtx.subPuMvpMiBuf.area() == 0 || !mrgCtx.subPuMvpMiBuf.buf, "Buffer not initialized");
+    CHECK_vvenc(mrgCtx.subPuMvpMiBuf.area() == 0 || !mrgCtx.subPuMvpMiBuf.buf, "Buffer not initialized");
     mb.copyFrom(mrgCtx.subPuMvpMiBuf);
   }
 }
@@ -3451,7 +3451,7 @@ bool CU::isBcwIdxCoded( const CodingUnit &cu )
 {
   if( ! cu.cs->sps->BCW )
   {
-    CHECK(cu.BcwIdx != BCW_DEFAULT, "Error: cu.BcwIdx != BCW_DEFAULT");
+    CHECK_vvenc(cu.BcwIdx != BCW_DEFAULT, "Error: cu.BcwIdx != BCW_DEFAULT");
     return false;
   }
 
@@ -3500,7 +3500,7 @@ uint8_t CU::getValidBcwIdx( const CodingUnit &cu )
   }
   else
   {
-    CHECK(cu.BcwIdx != BCW_DEFAULT, " cu.BcwIdx != BCW_DEFAULT ");
+    CHECK_vvenc(cu.BcwIdx != BCW_DEFAULT, " cu.BcwIdx != BCW_DEFAULT ");
   }
 
   return BCW_DEFAULT;
@@ -3524,7 +3524,7 @@ void CU::setBcwIdx( CodingUnit &cu, uint8_t uh )
     cu.BcwIdx = BCW_DEFAULT;
   }
 
-  CHECK(uhCnt <= 0, " uhCnt <= 0 ");
+  CHECK_vvenc(uhCnt <= 0, " uhCnt <= 0 ");
 }
 
 bool CU::bdpcmAllowed( const CodingUnit& cu, const ComponentID compID )
@@ -3565,7 +3565,7 @@ bool TU::getCbf( const TransformUnit& tu, const ComponentID compID )
 bool TU::getCbfAtDepth(const TransformUnit& tu, const ComponentID compID, const unsigned depth)
 {
   if( !tu.blocks[compID].valid() )
-    CHECK( tu.cbf[compID] != 0, "cbf must be 0 if the component is not available" );
+    CHECK_vvenc(tu.cbf[compID] != 0, "cbf must be 0 if the component is not available" );
   return ((tu.cbf[compID] >> depth) & 1) == 1;
 }
 

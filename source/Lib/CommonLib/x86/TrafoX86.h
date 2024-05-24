@@ -800,7 +800,7 @@ void cpyCoeff_SSE( const Pel* src, ptrdiff_t stride, TCoeff* dst, unsigned width
 template<X86_VEXT vext>
 void simdInvLfnstNxN( int* src, int* dst, const uint32_t mode, const uint32_t index, const uint32_t size, int zeroOutSize )
 {
-  CHECK( index > 2 || ( zeroOutSize != 8 && zeroOutSize != 16 ), "Wrong parameters" );
+  CHECK_vvenc(index > 2 || (zeroOutSize != 8 && zeroOutSize != 16 ), "Wrong parameters" );
 
   static constexpr int maxLog2TrDynamicRange = 15;
   const TCoeff    outputMinimum = -( 1 << maxLog2TrDynamicRange );

@@ -105,7 +105,7 @@ void CABACReader::remaining_bytes( bool noTrailingBytesExpected )
 {
   if( noTrailingBytesExpected )
   {
-    CHECK( 0 != m_Bitstream->getNumBitsLeft(), "Bits left when not supposed" );
+    CHECK_vvenc(0 != m_Bitstream->getNumBitsLeft(), "Bits left when not supposed" );
   }
   else
   {
@@ -170,7 +170,7 @@ void CABACReader::coding_tree_unit( CodingStructure& cs, const UnitArea& area, i
         if( isChroma( (ComponentID)compIdx ) )
         {
           int apsIdx = cs.slice->chromaApsId;
-          CHECK(cs.slice->alfAps[apsIdx] == nullptr, "APS not initialized");
+          CHECK_vvenc(cs.slice->alfAps[apsIdx] == nullptr, "APS not initialized");
           const AlfParam& alfParam = cs.slice->alfAps[apsIdx]->alfParam;
           const int numAlts = alfParam.numAlternativesChroma;
           uint8_t* ctbAlfAlternative = cs.slice->pic->m_alfCtuAlternative[compIdx].data();
@@ -487,7 +487,7 @@ void CABACReader::coding_tree( CodingStructure& cs, Partitioner& partitioner, CU
 
   const PartSplit splitMode = split_cu_mode( cs, partitioner );
 
-  CHECK( !partitioner.canSplit( splitMode, cs ), "Got an invalid split!" );
+  CHECK_vvenc(!partitioner.canSplit(splitMode, cs ), "Got an invalid split!" );
 
   if( splitMode != CU_DONT_SPLIT )
   {
@@ -509,7 +509,7 @@ void CABACReader::coding_tree( CodingStructure& cs, Partitioner& partitioner, CU
             }
             lumaContinue = partitioner.nextPart(cs);
             chromaContinue = pPartitionerChroma->nextPart(cs);
-            CHECK(lumaContinue != chromaContinue, "luma chroma partition should be matched");
+            CHECK_vvenc(lumaContinue != chromaContinue, "luma chroma partition should be matched");
             beContinue = lumaContinue;
           }
           else
@@ -525,7 +525,7 @@ void CABACReader::coding_tree( CodingStructure& cs, Partitioner& partitioner, CU
               coding_tree(cs, *pPartitionerChroma, *pCuCtxChroma);
             }
             chromaContinue = pPartitionerChroma->nextPart(cs);
-            CHECK(lumaContinue != chromaContinue, "luma chroma partition should be matched");
+            CHECK_vvenc(lumaContinue != chromaContinue, "luma chroma partition should be matched");
             beContinue = lumaContinue;
           }
         }
@@ -570,7 +570,7 @@ void CABACReader::coding_tree( CodingStructure& cs, Partitioner& partitioner, CU
         partitioner.modeType = mode_constraint( cs, partitioner, splitMode ); //change for child nodes
         //decide chroma split or not
         bool chromaNotSplit = modeTypeParent == MODE_TYPE_ALL && partitioner.modeType == MODE_TYPE_INTRA;
-        CHECK( chromaNotSplit && partitioner.chType != CH_L, "chType must be luma" );
+        CHECK_vvenc(chromaNotSplit && partitioner.chType != CH_L, "chType must be luma" );
         if( partitioner.treeType == TREE_D )
         {
           partitioner.treeType = chromaNotSplit ? TREE_L : TREE_D;
@@ -587,7 +587,7 @@ void CABACReader::coding_tree( CodingStructure& cs, Partitioner& partitioner, CU
       partitioner.exitCurrSplit();
       if( chromaNotSplit )
       {
-        CHECK( partitioner.chType != CH_L, "must be luma status" );
+        CHECK_vvenc(partitioner.chType != CH_L, "must be luma status" );
         partitioner.chType = CH_C;
         partitioner.treeType = TREE_C;
 
@@ -628,7 +628,7 @@ void CABACReader::coding_tree( CodingStructure& cs, Partitioner& partitioner, CU
     //derive chroma qp, but the chroma qp is saved in cuCtx.qp which is used for luma qp
     //therefore, after decoding the chroma CU, the cuCtx.qp shall be recovered to luma qp in order to decode next luma cu qp
     const CodingUnit* colLumaCu = cs.getLumaCU( lumaRefPos );
-    CHECK( colLumaCu == nullptr, "colLumaCU shall exist" );
+    CHECK_vvenc(colLumaCu == nullptr, "colLumaCU shall exist" );
     lumaQPinLocalDualTree = cuCtx.qp;
 
     if (colLumaCu) cuCtx.qp = colLumaCu->qp;
@@ -766,7 +766,7 @@ PartSplit CABACReader::split_cu_mode( CodingStructure& cs, Partitioner &partitio
 void CABACReader::coding_unit( CodingUnit &cu, Partitioner &partitioner, CUCtx& cuCtx )
 {
   CodingStructure& cs = *cu.cs;
-  CHECK( cu.treeType != partitioner.treeType || cu.modeType != partitioner.modeType, "treeType or modeType mismatch" );
+  CHECK_vvenc(cu.treeType != partitioner.treeType || cu.modeType != partitioner.modeType, "treeType or modeType mismatch" );
   DTRACE( g_trace_ctx, D_SYNTAX, "coding_unit() treeType=%d modeType=%d\n", cu.treeType, cu.modeType );
   cu.initPuData();
 
@@ -1131,7 +1131,7 @@ void CABACReader::cu_bcw_flag(CodingUnit& cu)
     return;
   }
 
-  CHECK(!(BCW_NUM > 1 && (BCW_NUM == 2 || (BCW_NUM & 0x01) == 1)), " !( BCW_NUM > 1 && ( BCW_NUM == 2 || ( BCW_NUM & 0x01 ) == 1 ) ) ");
+  CHECK_vvenc(!(BCW_NUM > 1 && (BCW_NUM == 2 || (BCW_NUM & 0x01) == 1)), " !( BCW_NUM > 1 && ( BCW_NUM == 2 || ( BCW_NUM & 0x01 ) == 1 ) ) ");
 
   uint32_t idx = 0;
 
@@ -1339,7 +1339,7 @@ bool CABACReader::intra_chroma_lmc_mode(CodingUnit& cu)
   if (symbol == 0)
   {
     cu.intraDir[1] = lmModeList[symbol];
-    CHECK(cu.intraDir[1] != LM_CHROMA_IDX, "should be LM_CHROMA");
+    CHECK_vvenc(cu.intraDir[1] != LM_CHROMA_IDX, "should be LM_CHROMA");
   }
   else
   {
@@ -1379,9 +1379,9 @@ void CABACReader::intra_chroma_pred_mode(CodingUnit& cu)
   unsigned chromaCandModes[NUM_CHROMA_MODE];
   CU::getIntraChromaCandModes(cu, chromaCandModes);
 
-  CHECK(candId >= NUM_CHROMA_MODE, "Chroma prediction mode index out of bounds");
-  CHECK(CU::isLMCMode(chromaCandModes[candId]), "The intra dir cannot be LM_CHROMA for this path");
-  CHECK(chromaCandModes[candId] == DM_CHROMA_IDX, "The intra dir cannot be DM_CHROMA for this path");
+  CHECK_vvenc(candId >= NUM_CHROMA_MODE, "Chroma prediction mode index out of bounds");
+  CHECK_vvenc(CU::isLMCMode(chromaCandModes[candId]), "The intra dir cannot be LM_CHROMA for this path");
+  CHECK_vvenc(chromaCandModes[candId] == DM_CHROMA_IDX, "The intra dir cannot be DM_CHROMA for this path");
 
   cu.intraDir[1] = chromaCandModes[candId];
 }
@@ -1644,7 +1644,7 @@ void CABACReader::prediction_unit( CodingUnit& cu, MergeCtx& mrgCtx )
   {
     RefPicList eCurRefList = (RefPicList)(cu.smvdMode - 1);
     cu.mvd[1 - eCurRefList][0].set( -cu.mvd[eCurRefList][0].hor, -cu.mvd[eCurRefList][0].ver );
-    CHECK(!((cu.mvd[1 - eCurRefList][0].hor >= MVD_MIN) && (cu.mvd[1 - eCurRefList][0].hor <= MVD_MAX)) || !((cu.mvd[1 - eCurRefList][0].ver >= MVD_MIN) && (cu.mvd[1 - eCurRefList][0].ver <= MVD_MAX)), "Illegal MVD value");
+    CHECK_vvenc(!((cu.mvd[1 - eCurRefList][0].hor >= MVD_MIN) && (cu.mvd[1 - eCurRefList][0].hor <= MVD_MAX)) || !((cu.mvd[1 - eCurRefList][0].ver >= MVD_MIN) && (cu.mvd[1 - eCurRefList][0].ver <= MVD_MAX)), "Illegal MVD value");
     cu.refIdx[1 - eCurRefList] = cu.cs->slice->symRefIdx[ 1 - eCurRefList ];
   }
 
@@ -1834,8 +1834,8 @@ void CABACReader::merge_idx( CodingUnit& cu )
     xReadTruncBinCode(splitDir, GEO_NUM_PARTITION_MODE);
     cu.geoSplitDir = splitDir;
     const int maxNumGeoCand = cu.cs->sps->maxNumGeoCand;
-    CHECK(maxNumGeoCand < 2, "Incorrect max number of geo candidates");
-    CHECK(cu.lheight() > 64 || cu.lwidth() > 64, "Incorrect block size of geo flag");
+    CHECK_vvenc(maxNumGeoCand < 2, "Incorrect max number of geo candidates");
+    CHECK_vvenc(cu.lheight() > 64 || cu.lwidth() > 64, "Incorrect block size of geo flag");
     int numCandminus2 = maxNumGeoCand - 2;
     cu.mergeIdx = 0;
     int mergeCand0 = 0;
@@ -2163,7 +2163,7 @@ void CABACReader::mvd_coding( Mv &rMvd )
     }
   }
   rMvd = Mv(horAbs, verAbs);
-  CHECK(!((horAbs >= MVD_MIN) && (horAbs <= MVD_MAX)) || !((verAbs >= MVD_MIN) && (verAbs <= MVD_MAX)), "Illegal MVD value");
+  CHECK_vvenc(!((horAbs >= MVD_MIN) && (horAbs <= MVD_MAX)) || !((verAbs >= MVD_MIN) && (verAbs <= MVD_MAX)), "Illegal MVD value");
   DTRACE( g_trace_ctx, D_SYNTAX, "mvd_coding() hor=%d ver=%d\n", rMvd.hor, rMvd.ver );
 }
 
@@ -2304,7 +2304,7 @@ void CABACReader::transform_unit( TransformUnit& tu, CUCtx& cuCtx, Partitioner& 
 
 void CABACReader::cu_qp_delta( CodingUnit& cu, int predQP, int8_t& qp )
 {
-  CHECK( predQP == std::numeric_limits<int>::max(), "Invalid predicted QP" );
+  CHECK_vvenc(predQP == std::numeric_limits<int>::max(), "Invalid predicted QP" );
   int qpY = predQP;
   int DQp = unary_max_symbol( Ctx::DeltaQP(), Ctx::DeltaQP(1), CU_DQP_TU_CMAX );
   if( DQp >= CU_DQP_TU_CMAX )

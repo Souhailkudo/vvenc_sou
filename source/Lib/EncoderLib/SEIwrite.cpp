@@ -63,7 +63,7 @@ void SEIWriter::xWriteSEIpayloadData(OutputBitstream &bs, const SEI& sei, HRD &h
     break;
   case SEI::DECODING_UNIT_INFO:
     bp = &hrd.bufferingPeriodSEI;
-    CHECK (bp == nullptr, "Buffering Period need to be initialized in HRD to allow writing of Decoding Unit Information SEI");
+    CHECK_vvenc (bp == nullptr, "Buffering Period need to be initialized in HRD to allow writing of Decoding Unit Information SEI");
     xWriteSEIDecodingUnitInfo(*static_cast<const SEIDecodingUnitInfo*>(& sei), *bp, temporalId);
     break;
   case SEI::SCALABLE_NESTING:
@@ -79,7 +79,7 @@ void SEIWriter::xWriteSEIpayloadData(OutputBitstream &bs, const SEI& sei, HRD &h
   case SEI::PICTURE_TIMING:
     {
       bp = &hrd.bufferingPeriodSEI;
-      CHECK (bp == nullptr, "Buffering Period need to be initialized in HRD to allow writing of Picture Timing SEI");
+      CHECK_vvenc (bp == nullptr, "Buffering Period need to be initialized in HRD to allow writing of Picture Timing SEI");
       xWriteSEIPictureTiming(*static_cast<const SEIPictureTiming*>(&sei), *bp, temporalId);
     }
     break;
@@ -171,7 +171,7 @@ void SEIWriter::writeSEImessages(OutputBitstream& bs, const SEIMessages &seiList
     g_HLSTraceEnable = traceEnable;
 #endif
     uint32_t payload_data_num_bits = bs_count.getNumberOfWrittenBits();
-    CHECK(0 != payload_data_num_bits % 8, "Invalid number of payload data bits");
+    CHECK_vvenc(0 != payload_data_num_bits % 8, "Invalid number of payload data bits");
 
     setBitstream(&bs);
     uint32_t payloadType = (*sei)->payloadType();
@@ -276,19 +276,19 @@ void SEIWriter::xWriteSEIBufferingPeriod(const SEIBufferingPeriod& sei)
 {
   WRITE_FLAG( sei.bpNalCpbParamsPresent, "bp_nal_hrd_parameters_present_flag");
   WRITE_FLAG( sei.bpVclCpbParamsPresent, "bp_vcl_hrd_parameters_present_flag");
-  CHECK(!sei.bpNalCpbParamsPresent && !sei.bpVclCpbParamsPresent, "bp_nal_hrd_parameters_present_flag and/or bp_vcl_hrd_parameters_present_flag must be true");
-  CHECK (sei.initialCpbRemovalDelayLength < 1, "sei.initialCpbRemovalDelayLength must be > 0");
+  CHECK_vvenc(!sei.bpNalCpbParamsPresent && !sei.bpVclCpbParamsPresent, "bp_nal_hrd_parameters_present_flag and/or bp_vcl_hrd_parameters_present_flag must be true");
+  CHECK_vvenc (sei.initialCpbRemovalDelayLength < 1, "sei.initialCpbRemovalDelayLength must be > 0");
   WRITE_CODE( sei.initialCpbRemovalDelayLength - 1, 5, "initial_cpb_removal_delay_length_minus1" );
-  CHECK (sei.cpbRemovalDelayLength < 1, "sei.cpbRemovalDelayLength must be > 0");
+  CHECK_vvenc (sei.cpbRemovalDelayLength < 1, "sei.cpbRemovalDelayLength must be > 0");
   WRITE_CODE( sei.cpbRemovalDelayLength - 1,        5, "cpb_removal_delay_length_minus1" );
-  CHECK (sei.dpbOutputDelayLength < 1, "sei.dpbOutputDelayLength must be > 0");
+  CHECK_vvenc (sei.dpbOutputDelayLength < 1, "sei.dpbOutputDelayLength must be > 0");
   WRITE_CODE( sei.dpbOutputDelayLength - 1,         5, "dpb_output_delay_length_minus1" );
   WRITE_FLAG( sei.bpDecodingUnitHrdParamsPresent, "bp_decoding_unit_hrd_params_present_flag"  );
   if( sei.bpDecodingUnitHrdParamsPresent )
   {
-    CHECK (sei.duCpbRemovalDelayIncrementLength < 1, "sei.duCpbRemovalDelayIncrementLength must be > 0");
+    CHECK_vvenc (sei.duCpbRemovalDelayIncrementLength < 1, "sei.duCpbRemovalDelayIncrementLength must be > 0");
     WRITE_CODE( sei.duCpbRemovalDelayIncrementLength - 1, 5, "du_cpb_removal_delay_increment_length_minus1" );
-    CHECK (sei.dpbOutputDelayDuLength < 1, "sei.dpbOutputDelayDuLength must be > 0");
+    CHECK_vvenc (sei.dpbOutputDelayDuLength < 1, "sei.dpbOutputDelayDuLength must be > 0");
     WRITE_CODE( sei.dpbOutputDelayDuLength - 1, 5, "dpb_output_delay_du_length_minus1" );
     WRITE_FLAG( sei.decodingUnitCpbParamsInPicTimingSeiFlag, "decoding_unit_cpb_params_in_pic_timing_sei_flag" );
     WRITE_FLAG(sei.decodingUnitDpbDuParamsInPicTimingSeiFlag, "decoding_unit_dpb_du_params_in_pic_timing_sei_flag");
@@ -301,10 +301,10 @@ void SEIWriter::xWriteSEIBufferingPeriod(const SEIBufferingPeriod& sei)
     WRITE_CODE( sei.maxInitialRemovalDelayForConcatenation, sei.initialCpbRemovalDelayLength, "max_initial_removal_delay_for_concatenation" );
   }
 
-  CHECK (sei.auCpbRemovalDelayDelta < 1, "sei.auCpbRemovalDelayDelta must be > 0");
+  CHECK_vvenc (sei.auCpbRemovalDelayDelta < 1, "sei.auCpbRemovalDelayDelta must be > 0");
   WRITE_CODE( sei.auCpbRemovalDelayDelta - 1, sei.cpbRemovalDelayLength, "au_cpb_removal_delay_delta_minus1" );
 
-  CHECK(sei.bpMaxSubLayers < 1, "bp_max_sub_layers_minus1 must be > 0");
+  CHECK_vvenc(sei.bpMaxSubLayers < 1, "bp_max_sub_layers_minus1 must be > 0");
   WRITE_CODE(sei.bpMaxSubLayers - 1, 3, "bp_max_sub_layers_minus1");
   if (sei.bpMaxSubLayers - 1 > 0)
   {
@@ -313,14 +313,14 @@ void SEIWriter::xWriteSEIBufferingPeriod(const SEIBufferingPeriod& sei)
 
   if (sei.cpbRemovalDelayDeltasPresent)
   {
-    CHECK (sei.numCpbRemovalDelayDeltas < 1, "m_numCpbRemovalDelayDeltas must be > 0");
+    CHECK_vvenc (sei.numCpbRemovalDelayDeltas < 1, "m_numCpbRemovalDelayDeltas must be > 0");
     WRITE_UVLC( sei.numCpbRemovalDelayDeltas - 1, "num_cpb_removal_delay_deltas_minus1" );
     for( int i = 0; i < sei.numCpbRemovalDelayDeltas; i ++ )
     {
       WRITE_CODE( sei.cpbRemovalDelayDelta[i],        sei.cpbRemovalDelayLength, "cpb_removal_delay_delta[i]" );
     }
   }
-  CHECK (sei.bpCpbCnt < 1, "sei.bpCpbCnt must be > 0");
+  CHECK_vvenc (sei.bpCpbCnt < 1, "sei.bpCpbCnt must be > 0");
   WRITE_UVLC( sei.bpCpbCnt - 1, "bp_cpb_cnt_minus1");
   if (sei.bpMaxSubLayers - 1 > 0)
   {
@@ -497,7 +497,7 @@ void SEIWriter::xWriteSEIDependentRAPIndication(const SEIDependentRAPIndication&
 
 void SEIWriter::xWriteSEIScalableNesting(OutputBitstream& bs, const SEIScalableNesting& sei)
 {
-  CHECK (sei.nestedSEIs.size()<1, "There must be at lease one SEI message nested in the scalable nesting SEI.")
+  CHECK_vvenc (sei.nestedSEIs.size() < 1, "There must be at lease one SEI message nested in the scalable nesting SEI.")
 
   WRITE_FLAG(sei.snOlsFlag, "sn_ols_flag");
   WRITE_FLAG(sei.snSubpicFlag, "sn_subpic_flag");
@@ -524,7 +524,7 @@ void SEIWriter::xWriteSEIScalableNesting(OutputBitstream& bs, const SEIScalableN
   if (sei.snSubpicFlag)
   {
     WRITE_UVLC( sei.snNumSubpics - 1, "sn_num_subpics_minus1");
-    CHECK(sei.snSubpicIdLen < 1, "sn_subpic_id_len_minus1 must be >= 0");
+    CHECK_vvenc(sei.snSubpicIdLen < 1, "sn_subpic_id_len_minus1 must be >= 0");
     WRITE_UVLC( sei.snSubpicIdLen - 1, "sn_subpic_id_len_minus1");
     for (uint32_t i = 0; i < sei.snNumSubpics; i++)
     {
@@ -753,11 +753,11 @@ void SEIWriter::xWriteSEIGeneralizedCubemapProjection(const SEIGeneralizedCubema
 
 void SEIWriter::xWriteSEISubpictureLevelInfo(const SEISubpicureLevelInfo &sei)
 {
-  CHECK(sei.numRefLevels < 1, "SEISubpicureLevelInfo: numRefLevels must be greater than zero");
-  CHECK(sei.numRefLevels != (int)sei.refLevelIdc.size(), "SEISubpicureLevelInfo: numRefLevels must be equal to the number of levels");
+  CHECK_vvenc(sei.numRefLevels < 1, "SEISubpicureLevelInfo: numRefLevels must be greater than zero");
+  CHECK_vvenc(sei.numRefLevels != (int)sei.refLevelIdc.size(), "SEISubpicureLevelInfo: numRefLevels must be equal to the number of levels");
   if (sei.explicitFractionPresent)
   {
-    CHECK(sei.numRefLevels != (int)sei.refLevelFraction.size(), "SEISubpicureLevelInfo: numRefLevels must be equal to the number of fractions");
+    CHECK_vvenc(sei.numRefLevels != (int)sei.refLevelFraction.size(), "SEISubpicureLevelInfo: numRefLevels must be equal to the number of fractions");
   }
   WRITE_CODE( (uint32_t)sei.numRefLevels - 1, 3,                            "sli_num_ref_levels_minus1");
   WRITE_FLAG(           sei.cbrConstraintFlag,                              "sli_cbr_constraint_flag");
@@ -781,7 +781,7 @@ void SEIWriter::xWriteSEISubpictureLevelInfo(const SEISubpicureLevelInfo &sei)
       WRITE_CODE((uint32_t)sei.refLevelIdc[i][k], 8, "sli_ref_level_idc[i][k]");
       if (sei.explicitFractionPresent)
       {
-        CHECK(sei.numSubpics != (int)sei.refLevelFraction[i].size(), "SEISubpicureLevelInfo: number of fractions differs from number of subpictures");
+        CHECK_vvenc(sei.numSubpics != (int)sei.refLevelFraction[i].size(), "SEISubpicureLevelInfo: number of fractions differs from number of subpictures");
         for (int j = 0; j < sei.numSubpics; j++)
         {
           WRITE_CODE((uint32_t)sei.refLevelFraction[i][j][k], 8, "sli_ref_level_fraction_minus1[i][j][k]");
